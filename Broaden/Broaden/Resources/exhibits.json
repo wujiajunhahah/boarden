@@ -1,0 +1,176 @@
+[
+  {
+    "id": "EXH-001",
+    "title": "青铜兽面纹鼎",
+    "shortIntro": "商周时期礼器，纹饰精细。",
+    "easyText": "这是一件古代祭祀用的青铜鼎，纹饰像兽面，显示当时高超的铸造技术。",
+    "detailText": "青铜鼎是礼制的重要象征，兽面纹常用于表现权威与神祇崇拜。此件鼎保存完整，器壁厚薄均匀。",
+    "glossary": [
+      {"term": "礼器", "def": "用于祭祀或礼仪的器物"},
+      {"term": "兽面纹", "def": "以兽脸为主题的纹饰"}
+    ],
+    "media": {
+      "signVideoFilename": "sign_demo.mp4",
+      "captionsVttOrSrtFilename": "captions_demo.srt"
+    },
+    "references": [
+      {"refId": "REF-01", "snippet": "商周青铜器多用于祭祀与礼仪。"},
+      {"refId": "REF-02", "snippet": "兽面纹象征权力与神祇。"}
+    ]
+  },
+  {
+    "id": "EXH-002",
+    "title": "唐代三彩骆驼俑",
+    "shortIntro": "丝路文化交流的象征。",
+    "easyText": "唐三彩是多彩釉陶，这件骆驼俑说明当时的丝路贸易非常繁荣。",
+    "detailText": "三彩工艺以低温釉色著称，骆驼俑常与商旅主题相关，反映唐代开放的社会风貌。",
+    "glossary": [
+      {"term": "三彩", "def": "多色釉陶工艺"},
+      {"term": "丝路", "def": "古代东西方交流贸易路线"}
+    ],
+    "media": {
+      "signVideoFilename": "sign_demo.mp4",
+      "captionsVttOrSrtFilename": "captions_demo.srt"
+    },
+    "references": [
+      {"refId": "REF-03", "snippet": "三彩器物体现唐代开放与繁荣。"}
+    ]
+  },
+  {
+    "id": "EXH-003",
+    "title": "宋代青瓷莲花碗",
+    "shortIntro": "釉色温润，造型简洁。",
+    "easyText": "这只莲花碗用青瓷烧制，颜色清雅，体现宋代审美。",
+    "detailText": "宋代青瓷追求温润含蓄的美感，莲花形态常寓意清净与高洁。",
+    "glossary": [
+      {"term": "青瓷", "def": "以青釉为主要特征的瓷器"}
+    ],
+    "media": {
+      "signVideoFilename": "sign_demo.mp4",
+      "captionsVttOrSrtFilename": "captions_demo.srt"
+    },
+    "references": [
+      {"refId": "REF-04", "snippet": "宋瓷强调釉色与形制的和谐。"}
+    ]
+  },
+  {
+    "id": "EXH-004",
+    "title": "明代山水册页",
+    "shortIntro": "文人画风格代表。",
+    "easyText": "这些小册页画的是山水，讲究意境和笔墨。",
+    "detailText": "明代文人画强调写意与个人情感表达，山水册页多用于私下赏读与交流。",
+    "glossary": [
+      {"term": "文人画", "def": "强调文人意趣的绘画风格"}
+    ],
+    "media": {
+      "signVideoFilename": "sign_demo.mp4",
+      "captionsVttOrSrtFilename": "captions_demo.srt"
+    },
+    "references": [
+      {"refId": "REF-05", "snippet": "文人画注重笔墨与意境。"}
+    ]
+  },
+  {
+    "id": "EXH-005",
+    "title": "清代掐丝珐琅瓶",
+    "shortIntro": "宫廷工艺的典型。",
+    "easyText": "掐丝珐琅用金属丝做出纹样，再填釉烧制。",
+    "detailText": "掐丝珐琅工艺流程复杂，色彩明艳，常见于宫廷陈设。",
+    "glossary": [
+      {"term": "掐丝", "def": "用金属丝勾勒纹样"},
+      {"term": "珐琅", "def": "玻璃质釉料"}
+    ],
+    "media": {
+      "signVideoFilename": "sign_demo.mp4",
+      "captionsVttOrSrtFilename": "captions_demo.srt"
+    },
+    "references": [
+      {"refId": "REF-06", "snippet": "清代掐丝珐琅以宫廷为主。"}
+    ]
+  },
+  {
+    "id": "EXH-006",
+    "title": "近代油画《河畔》",
+    "shortIntro": "现代写实风格。",
+    "easyText": "画面描绘河畔生活场景，色彩明亮。",
+    "detailText": "作品以写实手法表现城市河畔景象，体现现代化进程中的生活变化。",
+    "glossary": [
+      {"term": "写实", "def": "注重真实再现的绘画方式"}
+    ],
+    "media": {
+      "signVideoFilename": "sign_demo.mp4",
+      "captionsVttOrSrtFilename": "captions_demo.srt"
+    },
+    "references": [
+      {"refId": "REF-07", "snippet": "现代油画呈现城市生活与光影。"}
+    ]
+  },
+  {
+    "id": "EXH-007",
+    "title": "石刻碑拓",
+    "shortIntro": "拓本记录书法风貌。",
+    "easyText": "拓本是把石碑上的字拓印在纸上，方便保存和学习。",
+    "detailText": "碑拓保留了书法原貌，是研究书法与历史的重要资料。",
+    "glossary": [
+      {"term": "拓本", "def": "从石刻上拓印下来的纸本"}
+    ],
+    "media": {
+      "signVideoFilename": "sign_demo.mp4",
+      "captionsVttOrSrtFilename": "captions_demo.srt"
+    },
+    "references": [
+      {"refId": "REF-08", "snippet": "碑拓是书法研究的重要材料。"}
+    ]
+  },
+  {
+    "id": "EXH-008",
+    "title": "汉代画像砖",
+    "shortIntro": "墓葬文化的图像资料。",
+    "easyText": "画像砖刻画人物与生活场景，反映汉代社会。",
+    "detailText": "画像砖多见于墓葬建筑，图像内容包括宴饮、出行等主题。",
+    "glossary": [
+      {"term": "画像砖", "def": "刻画图像的砖构件"}
+    ],
+    "media": {
+      "signVideoFilename": "sign_demo.mp4",
+      "captionsVttOrSrtFilename": "captions_demo.srt"
+    },
+    "references": [
+      {"refId": "REF-09", "snippet": "画像砖记录汉代生活场景。"}
+    ]
+  },
+  {
+    "id": "EXH-009",
+    "title": "玉龙饰",
+    "shortIntro": "新石器时代玉器。",
+    "easyText": "玉龙饰是早期玉器，象征崇拜与权力。",
+    "detailText": "玉龙饰工艺精细，反映史前社会对自然与神灵的想象。",
+    "glossary": [
+      {"term": "玉器", "def": "以玉石制作的器物"}
+    ],
+    "media": {
+      "signVideoFilename": "sign_demo.mp4",
+      "captionsVttOrSrtFilename": "captions_demo.srt"
+    },
+    "references": [
+      {"refId": "REF-10", "snippet": "史前玉器多具祭祀与象征意义。"}
+    ]
+  },
+  {
+    "id": "EXH-010",
+    "title": "战国铜镜",
+    "shortIntro": "装饰纹样丰富。",
+    "easyText": "铜镜背面有精细纹饰，说明工艺发达。",
+    "detailText": "战国铜镜常见几何与神兽纹样，背面装饰体现审美与工艺。",
+    "glossary": [
+      {"term": "铜镜", "def": "古代青铜制镜"}
+    ],
+    "media": {
+      "signVideoFilename": "sign_demo.mp4",
+      "captionsVttOrSrtFilename": "captions_demo.srt"
+    },
+    "references": [
+      {"refId": "REF-11", "snippet": "战国铜镜纹样多样。"}
+    ]
+  }
+]

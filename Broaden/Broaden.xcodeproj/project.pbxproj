@@ -1,0 +1,379 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		01A1A0B10000000100000001 /* BroadenApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0A10000000100000001 /* BroadenApp.swift */; };
+		01A1A0B20000000100000001 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0A20000000100000001 /* RootView.swift */; };
+		01A1A0B30000000100000001 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0A30000000100000001 /* HomeView.swift */; };
+		01A1A0B40000000100000001 /* CameraGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0A40000000100000001 /* CameraGuideView.swift */; };
+		01A1A0B50000000100000001 /* CameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0A50000000100000001 /* CameraPreview.swift */; };
+		01A1A0B60000000100000001 /* ExhibitDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0A60000000100000001 /* ExhibitDetailView.swift */; };
+		01A1A0B70000000100000001 /* ViewComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0A70000000100000001 /* ViewComponents.swift */; };
+		01A1A0B80000000100000001 /* AskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0A80000000100000001 /* AskView.swift */; };
+		01A1A0B90000000100000001 /* FaceToFaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0A90000000100000001 /* FaceToFaceView.swift */; };
+		01A1A0BA0000000100000001 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0AA0000000100000001 /* SettingsView.swift */; };
+		01A1A0BB0000000100000001 /* Exhibit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0AB0000000100000001 /* Exhibit.swift */; };
+		01A1A0BC0000000100000001 /* AskModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0AC0000000100000001 /* AskModels.swift */; };
+		01A1A0BD0000000100000001 /* SettingsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0AD0000000100000001 /* SettingsModels.swift */; };
+		01A1A0BE0000000100000001 /* ExhibitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0AE0000000100000001 /* ExhibitService.swift */; };
+		01A1A0BF0000000100000001 /* AskService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0AF0000000100000001 /* AskService.swift */; };
+		01A1A0C00000000100000001 /* CaptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0B00000000100000001 /* CaptionService.swift */; };
+		01A1A0C10000000100000001 /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0B10000000100000002 /* Haptics.swift */; };
+		01A1A0C20000000100000001 /* ExhibitMatchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0B20000000100000002 /* ExhibitMatchService.swift */; };
+		01A1A0C30000000100000001 /* AnswerCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0B30000000100000002 /* AnswerCache.swift */; };
+		01A1A0C40000000100000001 /* CameraSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0B40000000100000002 /* CameraSessionController.swift */; };
+		01A1A0C50000000100000001 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0B50000000100000002 /* AppState.swift */; };
+		01A1A0C60000000100000001 /* CameraGuideViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0B60000000100000002 /* CameraGuideViewModel.swift */; };
+		01A1A0C70000000100000001 /* ExhibitDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0B70000000100000002 /* ExhibitDetailViewModel.swift */; };
+		01A1A0C80000000100000001 /* AskViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0B80000000100000002 /* AskViewModel.swift */; };
+		01A1A0C90000000100000001 /* exhibits.json in Resources */ = {isa = PBXBuildFile; fileRef = 01A1A0B90000000100000002 /* exhibits.json */; };
+		01A1A0CA0000000100000001 /* captions_demo.srt in Resources */ = {isa = PBXBuildFile; fileRef = 01A1A0BA0000000100000002 /* captions_demo.srt */; };
+		01A1A0CB0000000100000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 01A1A0BB0000000100000002 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		01A1A0900000000100000001 /* Broaden.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = Broaden.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		01A1A0A10000000100000001 /* BroadenApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadenApp.swift; sourceTree = "<group>"; };
+		01A1A0A20000000100000001 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		01A1A0A30000000100000001 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		01A1A0A40000000100000001 /* CameraGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraGuideView.swift; sourceTree = "<group>"; };
+		01A1A0A50000000100000001 /* CameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreview.swift; sourceTree = "<group>"; };
+		01A1A0A60000000100000001 /* ExhibitDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExhibitDetailView.swift; sourceTree = "<group>"; };
+		01A1A0A70000000100000001 /* ViewComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewComponents.swift; sourceTree = "<group>"; };
+		01A1A0A80000000100000001 /* AskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskView.swift; sourceTree = "<group>"; };
+		01A1A0A90000000100000001 /* FaceToFaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceToFaceView.swift; sourceTree = "<group>"; };
+		01A1A0AA0000000100000001 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		01A1A0AB0000000100000001 /* Exhibit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exhibit.swift; sourceTree = "<group>"; };
+		01A1A0AC0000000100000001 /* AskModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskModels.swift; sourceTree = "<group>"; };
+		01A1A0AD0000000100000001 /* SettingsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModels.swift; sourceTree = "<group>"; };
+		01A1A0AE0000000100000001 /* ExhibitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExhibitService.swift; sourceTree = "<group>"; };
+		01A1A0AF0000000100000001 /* AskService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskService.swift; sourceTree = "<group>"; };
+		01A1A0B00000000100000001 /* CaptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptionService.swift; sourceTree = "<group>"; };
+		01A1A0B10000000100000002 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
+		01A1A0B20000000100000002 /* ExhibitMatchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExhibitMatchService.swift; sourceTree = "<group>"; };
+		01A1A0B30000000100000002 /* AnswerCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnswerCache.swift; sourceTree = "<group>"; };
+		01A1A0B40000000100000002 /* CameraSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSessionController.swift; sourceTree = "<group>"; };
+		01A1A0B50000000100000002 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		01A1A0B60000000100000002 /* CameraGuideViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraGuideViewModel.swift; sourceTree = "<group>"; };
+		01A1A0B70000000100000002 /* ExhibitDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExhibitDetailViewModel.swift; sourceTree = "<group>"; };
+		01A1A0B80000000100000002 /* AskViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskViewModel.swift; sourceTree = "<group>"; };
+		01A1A0B90000000100000002 /* exhibits.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = exhibits.json; sourceTree = "<group>"; };
+		01A1A0BA0000000100000002 /* captions_demo.srt */ = {isa = PBXFileReference; lastKnownFileType = text; path = captions_demo.srt; sourceTree = "<group>"; };
+		01A1A0BB0000000100000002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		01A1A0BC0000000100000002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		01A1A0E20000000100000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		01A1A0800000000100000001 = {
+			isa = PBXGroup;
+			children = (
+				01A1A0C00000000100000002 /* Broaden */,
+				01A1A0C10000000100000002,
+			);
+			sourceTree = "<group>";
+		};
+		01A1A0C00000000100000002 /* Broaden */ = {
+			isa = PBXGroup;
+			children = (
+				01A1A0D00000000100000002 /* Models */,
+				01A1A0D10000000100000002 /* Services */,
+				01A1A0D20000000100000002 /* ViewModels */,
+				01A1A0D30000000100000002 /* Views */,
+				01A1A0D40000000100000002 /* Resources */,
+				01A1A0A10000000100000001 /* BroadenApp.swift */,
+			);
+			path = Broaden;
+			sourceTree = "<group>";
+		};
+		01A1A0C10000000100000002 = {
+			isa = PBXGroup;
+			children = (
+				01A1A0900000000100000001 /* Broaden.app */,
+			);
+			sourceTree = "<group>";
+		};
+		01A1A0D00000000100000002 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				01A1A0AB0000000100000001 /* Exhibit.swift */,
+				01A1A0AC0000000100000001 /* AskModels.swift */,
+				01A1A0AD0000000100000001 /* SettingsModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		01A1A0D10000000100000002 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				01A1A0AE0000000100000001 /* ExhibitService.swift */,
+				01A1A0AF0000000100000001 /* AskService.swift */,
+				01A1A0B00000000100000001 /* CaptionService.swift */,
+				01A1A0B10000000100000002 /* Haptics.swift */,
+				01A1A0B20000000100000002 /* ExhibitMatchService.swift */,
+				01A1A0B30000000100000002 /* AnswerCache.swift */,
+				01A1A0B40000000100000002 /* CameraSessionController.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		01A1A0D20000000100000002 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				01A1A0B50000000100000002 /* AppState.swift */,
+				01A1A0B60000000100000002 /* CameraGuideViewModel.swift */,
+				01A1A0B70000000100000002 /* ExhibitDetailViewModel.swift */,
+				01A1A0B80000000100000002 /* AskViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		01A1A0D30000000100000002 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				01A1A0A20000000100000001 /* RootView.swift */,
+				01A1A0A30000000100000001 /* HomeView.swift */,
+				01A1A0A40000000100000001 /* CameraGuideView.swift */,
+				01A1A0A50000000100000001 /* CameraPreview.swift */,
+				01A1A0A60000000100000001 /* ExhibitDetailView.swift */,
+				01A1A0A70000000100000001 /* ViewComponents.swift */,
+				01A1A0A80000000100000001 /* AskView.swift */,
+				01A1A0A90000000100000001 /* FaceToFaceView.swift */,
+				01A1A0AA0000000100000001 /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		01A1A0D40000000100000002 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				01A1A0B90000000100000002 /* exhibits.json */,
+				01A1A0BA0000000100000002 /* captions_demo.srt */,
+				01A1A0BB0000000100000002 /* Assets.xcassets */,
+				01A1A0BC0000000100000002 /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		01A1A0E00000000100000002 /* Broaden */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 01A1A0F00000000100000002 /* Build configuration list for PBXNativeTarget "Broaden" */;
+			buildPhases = (
+				01A1A0E10000000100000002 /* Sources */,
+				01A1A0E20000000100000002 /* Frameworks */,
+				01A1A0E30000000100000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Broaden;
+			productName = Broaden;
+			productReference = 01A1A0900000000100000001 /* Broaden.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		01A1A0700000000100000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					01A1A0E00000000100000002 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 01A1A0F10000000100000002 /* Build configuration list for PBXProject "Broaden" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 01A1A0800000000100000001;
+			productRefGroup = 01A1A0C10000000100000002;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				01A1A0E00000000100000002 /* Broaden */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		01A1A0E30000000100000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				01A1A0C90000000100000001 /* exhibits.json in Resources */,
+				01A1A0CA0000000100000001 /* captions_demo.srt in Resources */,
+				01A1A0CB0000000100000001 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		01A1A0E10000000100000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				01A1A0B10000000100000001 /* BroadenApp.swift in Sources */,
+				01A1A0B20000000100000001 /* RootView.swift in Sources */,
+				01A1A0B30000000100000001 /* HomeView.swift in Sources */,
+				01A1A0B40000000100000001 /* CameraGuideView.swift in Sources */,
+				01A1A0B50000000100000001 /* CameraPreview.swift in Sources */,
+				01A1A0B60000000100000001 /* ExhibitDetailView.swift in Sources */,
+				01A1A0B70000000100000001 /* ViewComponents.swift in Sources */,
+				01A1A0B80000000100000001 /* AskView.swift in Sources */,
+				01A1A0B90000000100000001 /* FaceToFaceView.swift in Sources */,
+				01A1A0BA0000000100000001 /* SettingsView.swift in Sources */,
+				01A1A0BB0000000100000001 /* Exhibit.swift in Sources */,
+				01A1A0BC0000000100000001 /* AskModels.swift in Sources */,
+				01A1A0BD0000000100000001 /* SettingsModels.swift in Sources */,
+				01A1A0BE0000000100000001 /* ExhibitService.swift in Sources */,
+				01A1A0BF0000000100000001 /* AskService.swift in Sources */,
+				01A1A0C00000000100000001 /* CaptionService.swift in Sources */,
+				01A1A0C10000000100000001 /* Haptics.swift in Sources */,
+				01A1A0C20000000100000001 /* ExhibitMatchService.swift in Sources */,
+				01A1A0C30000000100000001 /* AnswerCache.swift in Sources */,
+				01A1A0C40000000100000001 /* CameraSessionController.swift in Sources */,
+				01A1A0C50000000100000001 /* AppState.swift in Sources */,
+				01A1A0C60000000100000001 /* CameraGuideViewModel.swift in Sources */,
+				01A1A0C70000000100000001 /* ExhibitDetailViewModel.swift in Sources */,
+				01A1A0C80000000100000001 /* AskViewModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		01A1A1000000000100000002 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = M4T239BM58;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Broaden/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.Broaden;
+				PRODUCT_NAME = Broaden;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+			};
+			name = Debug;
+		};
+		01A1A1010000000100000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = M4T239BM58;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Broaden/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.Broaden;
+				PRODUCT_NAME = Broaden;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+			};
+			name = Release;
+		};
+		01A1A1020000000100000002 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = Broaden/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.Broaden;
+				SWIFT_VERSION = 6.0;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+			};
+			name = Debug;
+		};
+		01A1A1030000000100000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = Broaden/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.Broaden;
+				SWIFT_VERSION = 6.0;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		01A1A0F00000000100000002 /* Build configuration list for PBXNativeTarget "Broaden" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				01A1A1000000000100000002 /* Debug */,
+				01A1A1010000000100000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		01A1A0F10000000100000002 /* Build configuration list for PBXProject "Broaden" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				01A1A1020000000100000002 /* Debug */,
+				01A1A1030000000100000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 01A1A0700000000100000001 /* Project object */;
+}
