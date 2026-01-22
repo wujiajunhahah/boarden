@@ -83,6 +83,28 @@
             debugEl.innerHTML += msg + '<br>';
         }
         
+        // 监控网络请求
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            const url = args[0]?.url || args[0];
+            showDebug('fetch请求: ' + (typeof url === 'string' ? url.substring(0, 60) : 'unknown'));
+            return originalFetch.apply(this, args).then(response => {
+                showDebug('fetch响应: ' + response.status + ' ' + (typeof url === 'string' ? url.substring(0, 40) : ''));
+                return response;
+            }).catch(err => {
+                showDebug('fetch错误: ' + err.message);
+                throw err;
+            });
+        };
+        
+        // 监控 XHR 请求
+        const originalXHROpen = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function(method, url) {
+            this._url = url;
+            showDebug('XHR请求: ' + method + ' ' + (url ? url.substring(0, 50) : ''));
+            return originalXHROpen.apply(this, arguments);
+        };
+        
         // 初始化数字人
         window.addEventListener('load', function() {
             showDebug('页面加载完成');
@@ -90,10 +112,22 @@
             showDebug('完整URL: ' + window.location.href);
             showDebug('yiyu对象: ' + (typeof yiyu !== 'undefined' ? '存在' : '不存在'));
             
+            // 检查 WebGL 支持
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                showDebug('WebGL支持: ' + (gl ? '是' : '否'));
+            } catch(e) {
+                showDebug('WebGL检查失败: ' + e.message);
+            }
+            
             // 检查 yiyu 对象的属性
             if (typeof yiyu !== 'undefined') {
                 showDebug('yiyu.app: ' + (typeof yiyu.app !== 'undefined' ? '存在' : '不存在'));
                 showDebug('yiyu 属性: ' + Object.keys(yiyu).join(', '));
+                if (yiyu.app) {
+                    showDebug('yiyu.app 方法: ' + Object.keys(yiyu.app).join(', '));
+                }
             }
             
             try {
