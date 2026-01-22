@@ -9,6 +9,9 @@ struct Secrets {
     let deepseekBaseURL: URL
     let qwenOCRModel: String
     let deepseekChatModel: String
+    
+    /// 手语数字人服务 APPSecret
+    let signLanguageAppSecret: String?
 
     private init() {
         let defaults = (
@@ -23,6 +26,7 @@ struct Secrets {
            let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any] {
             qwenApiKey = plist["QWEN_API_KEY"] as? String
             deepseekApiKey = plist["DEEPSEEK_API_KEY"] as? String
+            signLanguageAppSecret = plist["SIGN_LANGUAGE_APP_SECRET"] as? String
 
             if let base = plist["QWEN_BASE_URL"] as? String, let url = URL(string: base) {
                 qwenBaseURL = url
@@ -41,6 +45,7 @@ struct Secrets {
         } else {
             qwenApiKey = nil
             deepseekApiKey = nil
+            signLanguageAppSecret = nil
             qwenBaseURL = defaults.qwenBaseURL
             deepseekBaseURL = defaults.deepseekBaseURL
             qwenOCRModel = defaults.qwenOCRModel
