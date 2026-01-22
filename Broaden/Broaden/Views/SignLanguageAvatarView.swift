@@ -1,8 +1,11 @@
 import SwiftUI
 import WebKit
 
-/// 手语数字人在线页面 URL（需要部署到 broaden.cc）
-private let signLanguageAvatarBaseURL = "https://broaden.cc/sign_language_avatar.html"
+/// 手语数字人在线页面 URL
+/// 正式环境使用自定义域名: https://broaden.cc/sign_language_avatar.html
+/// Vercel 部署域名: https://boarden-81u8u5555-gaazones-projects.vercel.app/sign_language_avatar.html
+/// 注意: 使用的域名必须在手语开放平台 (https://cloud.gbqr.net/) 绑定
+private let signLanguageAvatarBaseURL = "https://boarden-81u8u5555-gaazones-projects.vercel.app/sign_language_avatar.html"
 
 /// 手语数字人视图 - 使用 WKWebView 加载手语翻译服务
 struct SignLanguageAvatarView: View {
