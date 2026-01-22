@@ -5,8 +5,16 @@ struct SignVideoPlayer: View {
     let filename: String
     /// 用于手语数字人翻译的文本（当没有本地视频时使用）
     var textForTranslation: String = ""
+    /// 可选：外部传入的协调器（用于跨视图共享控制和实现自动联动）
+    var coordinator: AvatarCoordinator?
     
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @StateObject private var internalCoordinator = AvatarCoordinator()
+    
+    /// 实际使用的协调器
+    private var activeCoordinator: AvatarCoordinator {
+        coordinator ?? internalCoordinator
+    }
 
     var body: some View {
         if let url = Bundle.main.url(forResource: filename, withExtension: nil) {
@@ -15,24 +23,19 @@ struct SignVideoPlayer: View {
                 .onAppear {
                     Haptics.lightImpact()
                 }
-        } else if !textForTranslation.isEmpty {
-            // 使用手语数字人服务进行实时翻译（APPSecret 已在 HTML 中硬编码）
-            SignLanguageAvatarView(textToTranslate: textForTranslation)
-                .onAppear {
-                    Haptics.lightImpact()
-                }
         } else {
-            // 回退到占位符界面
-            ZStack {
-                Rectangle()
-                    .fill(.thinMaterial)
-                VStack(spacing: 12) {
-                    SignGestureAnimation(reduceMotion: reduceMotion)
-                        .frame(height: 80)
-                        .accessibilityLabel("手语动画占位")
-                    Text("手语解说占位")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
+            // 使用手语数字人服务进行实时翻译
+            SignLanguageAvatarView(
+                textToTranslate: textForTranslation,
+                externalCoordinator: activeCoordinator
+            )
+            .onAppear {
+                Haptics.lightImpact()
+            }
+            .onChange(of: textForTranslation) { _, newValue in
+                // 当翻译文本变化时，自动发送到数字人（实现脚本更新即时翻译）
+                if activeCoordinator.isLoaded && !newValue.isEmpty {
+                    activeCoordinator.sendText(newValue)
                 }
             }
         }

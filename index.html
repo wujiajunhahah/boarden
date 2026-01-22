@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Digital Human Only</title>
+    <style>
+        /* 1. 强制全透明和无滚动条 */
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background-color: transparent !important;
+        }
+
+        /* 2. 核心：暴力隐藏所有非 Canvas 元素 */
+        /* 无论 SDK 生成什么容器，这段代码会隐藏 body 下所有不是 canvas 的东西 */
+        body *:not(canvas) {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        
+        /* 针对可能出现的 UI 弹窗、文字、Logo 的通用遮蔽 */
+        div, p, span, b, a {
+            color: transparent !important;
+            pointer-events: none !important;
+            user-select: none !important;
+        }
+
+        /* 确保 Canvas（数字人本身）可见 */
+        canvas {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+    </style>
+</head>
+<body>
+    <script type="module" src="https://avatar.gbqr.net/yiyu.js"></script>
+
+    <script>
+        // 初始化状态标记
+        let isReady = false;
+
+        window.addEventListener('load', function () {
+            if (window.yiyu && window.yiyu.app) {
+                yiyu.app.init({
+                    name: 'HLkkvXQwNjEZWePBrQ3OD30irHbxVN7RL7dDeGNehLqfnlkBA+9pro9rGhTgwYNEQY5Yuey5+ueXY7Yr1BgVn/IjerYbX9YH1U3Toe7X5ByM4yJ+feudfabdp+Nz/rOgvY2x5Kt3a6+S+ESCcyxk2Z9CbqCeUjas6xw9+svMthc=', 
+                    readLocalResource: false,
+                    draggable: false,
+                    showToast: false 
+                });
+
+                yiyu.app.onAppReady(function() {
+                    yiyu.app.disableHyperTranslation();
+                    yiyu.app.disableTextSelection();
+                    
+                    yiyu.app.setPosition(0, 0); 
+                    yiyu.app.setSize('100%', '100%');
+                    yiyu.app.setAvatarSize(1);
+                    
+                    isReady = true; // 标记加载完成
+                    console.log('Avatar is ready for commands');
+                });
+            }
+        });
+
+        // --- 供 iOS 原生调用的接口 ---
+
+        window.sendSignText = function(text) {
+            if (isReady && window.yiyu && window.yiyu.app) {
+                yiyu.app.startTranslate(text);
+            } else {
+                console.warn("数字人尚未就绪，指令已忽略");
+            }
+        };
+
+        window.stopSign = function() {
+            if (isReady && window.yiyu && window.yiyu.app) {
+                yiyu.app.cancelTranslation();
+            }
+        };
+    </script>
+</body>
+</html>
