@@ -134,11 +134,33 @@
                 showDebug('开始初始化 SDK...');
                 showDebug('APPSecret前20字符: ' + appSecret.substring(0, 20) + '...');
                 
+                // 注册 onAppReady 回调
+                yiyu.app.onAppReady(function() {
+                    showDebug('>>> onAppReady 触发！SDK 已就绪');
+                });
+                
+                // 注册 onHtmlReady 回调
+                yiyu.app.onHtmlReady(function() {
+                    showDebug('>>> onHtmlReady 触发！HTML 已就绪');
+                });
+                
+                // 初始化
                 yiyu.app.init({
                     name: appSecret,
                     readLocalResource: false
                 });
                 showDebug('init() 调用成功');
+                
+                // 尝试调用 login（如果 init 不够）
+                setTimeout(function() {
+                    showDebug('尝试调用 login...');
+                    try {
+                        yiyu.app.login(appSecret);
+                        showDebug('login() 调用成功');
+                    } catch(e) {
+                        showDebug('login() 错误: ' + e.message);
+                    }
+                }, 500);
                 
                 // 持续监控 SDK 状态
                 let checkCount = 0;
