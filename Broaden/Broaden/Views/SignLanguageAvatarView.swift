@@ -1,6 +1,9 @@
 import SwiftUI
 import WebKit
 
+/// 手语数字人在线页面 URL（需要部署到 broaden.cc）
+private let signLanguageAvatarBaseURL = "https://broaden.cc/sign_language_avatar.html"
+
 /// 手语数字人视图 - 使用 WKWebView 加载手语翻译服务
 struct SignLanguageAvatarView: View {
     let textToTranslate: String
@@ -76,9 +79,6 @@ struct SignLanguageWebView: UIViewRepresentable {
         configuration.allowsInlineMediaPlayback = true
         configuration.mediaTypesRequiringUserActionForPlayback = []
         
-        // 允许 WebGL
-        configuration.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
-        
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
         webView.scrollView.isScrollEnabled = false
@@ -89,19 +89,34 @@ struct SignLanguageWebView: UIViewRepresentable {
         // 存储 webView 引用以便后续使用
         context.coordinator.webView = webView
         
-        // 加载手语数字人 HTML - 使用网络 URL 作为 baseURL 以支持 ES Module
-        let html = generateSignLanguageHTML(text: textToTranslate)
-        if let baseURL = URL(string: "https://avatar.gbqr.net/") {
-            webView.loadHTMLString(html, baseURL: baseURL)
+        // 构建在线页面 URL（部署在 broaden.cc）
+        // URL 参数: text=翻译文本, secret=APPSecret
+        if let appSecret = Secrets.shared.signLanguageAppSecret,
+           let encodedText = textToTranslate.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+           let encodedSecret = appSecret.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+           let url = URL(string: "\(signLanguageAvatarBaseURL)?text=\(encodedText)&secret=\(encodedSecret)") {
+            print("[SignLanguage] 加载在线页面: \(signLanguageAvatarBaseURL)")
+            webView.load(URLRequest(url: url))
         } else {
-            webView.loadHTMLString(html, baseURL: nil)
+            print("[SignLanguage] 错误: 无法构建 URL")
+            DispatchQueue.main.async {
+                self.hasError = true
+                self.errorMessage = "配置错误"
+            }
         }
         
         return webView
     }
     
     func updateUIView(_ webView: WKWebView, context: Context) {
-        // 文本变化时不重新加载，由 JS 内部处理
+        // 当文本变化时，调用 JS 函数更新翻译
+        let escapedText = textToTranslate
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "'", with: "\\'")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+        let script = "if (typeof translateText === 'function') { translateText('\(escapedText)'); }"
+        webView.evaluateJavaScript(script, completionHandler: nil)
     }
     
     static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
@@ -109,154 +124,6 @@ struct SignLanguageWebView: UIViewRepresentable {
         uiView.configuration.userContentController.removeScriptMessageHandler(forName: "loadComplete")
         uiView.configuration.userContentController.removeScriptMessageHandler(forName: "loadError")
         uiView.configuration.userContentController.removeScriptMessageHandler(forName: "debugLog")
-    }
-    
-    private func escapeJavaScript(_ text: String) -> String {
-        return text
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "'", with: "\\'")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\n", with: "\\n")
-            .replacingOccurrences(of: "\r", with: "\\r")
-    }
-    
-    private func generateSignLanguageHTML(text: String) -> String {
-        let appSecret = Secrets.shared.signLanguageAppSecret ?? ""
-        let escapedText = escapeJavaScript(text)
-        
-        return """
-        <!DOCTYPE html>
-        <html lang="zh-CN">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-            <style>
-                * {
-                    margin: 0;
-                    padding: 0;
-                    box-sizing: border-box;
-                }
-                html, body {
-                    width: 100%;
-                    height: 100%;
-                    overflow: hidden;
-                    background: transparent;
-                }
-                body {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                }
-                #yiyuAppElement {
-                    position: relative !important;
-                    top: auto !important;
-                    left: auto !important;
-                    transform: none !important;
-                }
-                canvas, video {
-                    max-width: 100% !important;
-                    max-height: 100% !important;
-                    object-fit: contain;
-                }
-            </style>
-        </head>
-        <body>
-            <script type="module">
-                // 调试日志函数
-                function log(msg) {
-                    console.log('[SignLanguage]', msg);
-                    try {
-                        window.webkit.messageHandlers.debugLog.postMessage(msg);
-                    } catch (e) {}
-                }
-                
-                // 安全地发送消息到 iOS
-                function postMessage(handler, msg) {
-                    try {
-                        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers[handler]) {
-                            window.webkit.messageHandlers[handler].postMessage(msg);
-                        }
-                    } catch (e) {
-                        console.error('postMessage error:', e);
-                    }
-                }
-                
-                // 动态加载 SDK
-                async function loadSDK() {
-                    log('开始加载 SDK...');
-                    
-                    try {
-                        // 动态导入 SDK
-                        const module = await import('https://avatar.gbqr.net/yiyu.js');
-                        log('SDK 模块加载成功');
-                        
-                        // 等待 yiyu 全局对象可用
-                        let attempts = 0;
-                        const maxAttempts = 50;
-                        
-                        while (typeof yiyu === 'undefined' && attempts < maxAttempts) {
-                            await new Promise(r => setTimeout(r, 100));
-                            attempts++;
-                        }
-                        
-                        if (typeof yiyu === 'undefined') {
-                            throw new Error('yiyu 对象未定义，SDK 加载超时');
-                        }
-                        
-                        log('yiyu 对象可用，开始初始化...');
-                        
-                        // 初始化数字人
-                        yiyu.app.init({
-                            name: '\(appSecret)',
-                            readLocalResource: false
-                        });
-                        
-                        log('初始化完成，等待渲染...');
-                        
-                        // 等待 canvas 创建
-                        await new Promise(r => setTimeout(r, 2000));
-                        
-                        // 检查是否有 canvas
-                        const canvas = document.querySelector('canvas');
-                        if (canvas) {
-                            log('Canvas 已创建: ' + canvas.width + 'x' + canvas.height);
-                        } else {
-                            log('警告: 未找到 canvas 元素');
-                        }
-                        
-                        // 开始翻译
-                        const text = '\(escapedText)';
-                        if (text.trim() !== '') {
-                            log('开始翻译: ' + text.substring(0, 20) + '...');
-                            yiyu.app.startTranslate(text);
-                        }
-                        
-                        // 通知 iOS 加载完成
-                        postMessage('loadComplete', 'success');
-                        
-                    } catch (e) {
-                        log('错误: ' + e.message);
-                        postMessage('loadError', e.message || 'unknown error');
-                    }
-                }
-                
-                // 全局错误处理
-                window.onerror = function(msg, url, line, col, error) {
-                    log('JS Error: ' + msg);
-                    postMessage('loadError', msg);
-                    return true;
-                };
-                
-                // 启动加载
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', loadSDK);
-                } else {
-                    loadSDK();
-                }
-            </script>
-        </body>
-        </html>
-        """
     }
     
     class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
