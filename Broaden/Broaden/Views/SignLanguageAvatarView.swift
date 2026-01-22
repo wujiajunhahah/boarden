@@ -1,8 +1,8 @@
 import SwiftUI
 import WebKit
 
-/// 手语数字人在线页面 URL（部署在 broaden.cc，已在手语开放平台绑定）
-private let signLanguageAvatarBaseURL = "https://broaden.cc/sign_language_avatar.html"
+/// 手语数字人在线页面 URL（部署在 www.broaden.cc，已在手语开放平台绑定）
+private let signLanguageAvatarBaseURL = "https://www.broaden.cc/sign_language_avatar.html"
 
 /// 手语数字人视图 - 使用 WKWebView 加载手语翻译服务
 struct SignLanguageAvatarView: View {
