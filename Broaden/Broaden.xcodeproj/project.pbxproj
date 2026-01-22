@@ -45,6 +45,7 @@
 		01A1A0F80000000100000002 /* ExhibitGenerationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0F70000000100000002 /* ExhibitGenerationService.swift */; };
 		01A1A0FA0000000100000002 /* TextProcessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0F90000000100000002 /* TextProcessing.swift */; };
 		01A1A0FC0000000100000001 /* SignLanguageAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0FB0000000100000001 /* SignLanguageAvatarView.swift */; };
+		01A1A0FD0000000200000001 /* ZhipuService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0FC0000000200000001 /* ZhipuService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -88,6 +89,7 @@
 		01A1A0F70000000100000002 /* ExhibitGenerationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExhibitGenerationService.swift; sourceTree = "<group>"; };
 		01A1A0F90000000100000002 /* TextProcessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextProcessing.swift; sourceTree = "<group>"; };
 		01A1A0FB0000000100000001 /* SignLanguageAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignLanguageAvatarView.swift; sourceTree = "<group>"; };
+		01A1A0FC0000000200000001 /* ZhipuService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZhipuService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -151,6 +153,7 @@
 				01A1A0D70000000100000002 /* DeepSeekService.swift */,
 				01A1A0D80000000100000002 /* ExhibitNarrationService.swift */,
 				01A1A0F70000000100000002 /* ExhibitGenerationService.swift */,
+				01A1A0FC0000000200000001 /* ZhipuService.swift */,
 				01A1A0AE0000000100000001 /* ExhibitService.swift */,
 				01A1A0AF0000000100000001 /* AskService.swift */,
 				01A1A0B00000000100000001 /* CaptionService.swift */,
@@ -305,6 +308,7 @@
 				01A1A0E70000000100000002 /* DeepSeekService.swift in Sources */,
 				01A1A0E80000000100000002 /* ExhibitNarrationService.swift in Sources */,
 				01A1A0F80000000100000002 /* ExhibitGenerationService.swift in Sources */,
+				01A1A0FD0000000200000001 /* ZhipuService.swift in Sources */,
 				01A1A0B10000000100000001 /* BroadenApp.swift in Sources */,
 				01A1A0B20000000100000001 /* RootView.swift in Sources */,
 				01A1A0B30000000100000001 /* HomeView.swift in Sources */,

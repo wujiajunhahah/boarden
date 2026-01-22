@@ -4,6 +4,7 @@ import UIKit
 import PhotosUI
 
 struct CameraGuideView: View {
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var appState: AppState
     @StateObject private var viewModel = CameraGuideViewModel()
     @State private var cameraController = CameraSessionController()
@@ -23,7 +24,24 @@ struct CameraGuideView: View {
                 .accessibilityLabel("相机预览")
                 .accessibilityHint("对准展品或展牌")
 
+            // 顶部返回按钮
             VStack {
+                HStack {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundStyle(.white)
+                            .frame(width: 36, height: 36)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    .accessibilityLabel("关闭")
+                    .accessibilityHint("返回上一页")
+                    Spacer()
+                }
+                .padding(.top, 16)
+                .padding(.horizontal, 20)
                 Spacer()
                 statusOverlay
                 Spacer()
@@ -223,29 +241,26 @@ struct CameraGuideView: View {
     private func handlePhotoPickerSelection(_ item: PhotosPickerItem?) {
         guard let item = item else { return }
 
-        Task {
-            do {
-                // 尝试加载图片数据
-                if let data = try? await item.loadTransferable(type: Data.self) {
-                    await MainActor.run {
-                        if let image = UIImage(data: data) {
-                            lastCapturedPreview = image
-                            // 如果是 done 状态，重置为 signboard 状态来处理新照片
-                            if case .done = viewModel.captureStage {
-                                viewModel.reset()
-                            }
-                            handlePhotoData(data)
-                        } else {
-                            // 如果 Data 无法直接创建 UIImage，尝试其他方式
-                            viewModel.recognitionState = .failed("不支持的图片格式")
-                        }
-                    }
-                } else {
-                    await MainActor.run {
-                        viewModel.recognitionState = .failed("无法加载选中的照片")
-                    }
-                }
+        Task { @MainActor in
+            // 使用 iOS 16+ API 加载图片
+            guard let data = try? await item.loadTransferable(type: Data.self) else {
+                viewModel.recognitionState = .failed("无法加载选中的照片")
+                return
             }
+
+            guard let image = UIImage(data: data) else {
+                viewModel.recognitionState = .failed("不支持的图片格式")
+                return
+            }
+
+            lastCapturedPreview = image
+
+            // 如果是 done 状态，重置为 signboard 状态来处理新照片
+            if case .done = viewModel.captureStage {
+                viewModel.reset()
+            }
+
+            handlePhotoData(data)
         }
     }
 
@@ -286,6 +301,7 @@ struct CameraGuideView: View {
 }
 
 private struct ExhibitSheetView: View {
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var appState: AppState
     let exhibit: Exhibit
     let stage: CameraGuideViewModel.CaptureStage
@@ -340,6 +356,17 @@ private struct ExhibitSheetView: View {
             .buttonStyle(.borderedProminent)
             .accessibilityLabel("查看展品详情")
             .accessibilityHint("进入展品详情页")
+
+            // 完成按钮
+            if case .done = stage {
+                Button {
+                    dismiss()
+                } label: {
+                    Text("完成")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            }
 
             Spacer()
         }

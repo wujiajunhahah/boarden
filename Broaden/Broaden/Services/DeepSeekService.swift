@@ -10,38 +10,8 @@ protocol DeepSeekServicing: Sendable {
 
 struct DeepSeekService: DeepSeekServicing {
     func generate(system: String, user: String) async throws -> DeepSeekResponse? {
-        guard let apiKey = Secrets.shared.deepseekApiKey else {
-            return nil
-        }
-
-        let endpoint = Secrets.shared.deepseekBaseURL.appendingPathComponent("chat/completions")
-        let model = Secrets.shared.deepseekChatModel
-
-        let payload: [String: Any] = [
-            "model": model,
-            "messages": [
-                ["role": "system", "content": system],
-                ["role": "user", "content": user]
-            ],
-            "temperature": 0.4
-        ]
-
-        var request = URLRequest(url: endpoint)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            return nil
-        }
-
-        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-        let choices = json?["choices"] as? [[String: Any]]
-        let message = choices?.first?["message"] as? [String: Any]
-        let text = message?["content"] as? String ?? ""
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? nil : DeepSeekResponse(text: trimmed)
+        // DeepSeek 已废弃，现在使用智谱 AI
+        // 返回 nil 使调用者使用回退方案
+        return nil
     }
 }

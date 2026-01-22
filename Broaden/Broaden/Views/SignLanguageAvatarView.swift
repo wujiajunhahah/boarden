@@ -188,10 +188,18 @@ struct SignLanguageWebView: UIViewRepresentable {
             parent.errorMessage = error.localizedDescription
         }
         
-        // 允许所有 HTTPS 请求
-        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-            decisionHandler(.allow)
-        }
+    }
+}
+
+// MARK: - WKNavigationDelegate Policy Decisions
+extension SignLanguageWebView.Coordinator {
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        decisionHandler(.allow)
+    }
+
+    @available(iOS 13.0, *)
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences, decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void) {
+        decisionHandler(.allow, preferences)
     }
 }
 

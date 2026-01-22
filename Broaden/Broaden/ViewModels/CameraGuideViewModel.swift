@@ -42,9 +42,14 @@ final class CameraGuideViewModel: ObservableObject {
     init(ocrService: OCRServicing? = nil) {
         if let ocrService {
             self.ocrService = ocrService
+        } else if Secrets.shared.isValidZhipuKey {
+            // 使用智谱多模态 OCR 服务
+            self.ocrService = ZhipuOCRService()
+            print("[CameraGuideViewModel] 使用智谱 OCR 服务")
         } else {
-            // Prefer native OCR to avoid noisy numeric outputs.
+            // 降级到本地 OCR
             self.ocrService = LocalOCRService()
+            print("[CameraGuideViewModel] 使用本地 OCR 服务")
         }
     }
 
