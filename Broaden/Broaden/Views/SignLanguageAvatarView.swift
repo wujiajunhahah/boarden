@@ -162,7 +162,45 @@ struct SignLanguageWebView: UIViewRepresentable {
         
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             print("[SignLanguage] WebView 页面加载完成")
-            // 页面加载完成，但 SDK 可能还在初始化
+            
+            // 注入 JavaScript 隐藏 UI，只显示数字人
+            let hideUIScript = """
+            (function() {
+                // 隐藏标题和容器 UI
+                var h1 = document.querySelector('h1');
+                var container = document.querySelector('.container');
+                if (h1) h1.style.display = 'none';
+                if (container) container.style.display = 'none';
+                
+                // 设置背景透明
+                document.body.style.background = 'transparent';
+                document.documentElement.style.background = 'transparent';
+                
+                // 重新定位数字人元素
+                var yiyuEl = document.getElementById('yiyuAppElement');
+                if (yiyuEl) {
+                    yiyuEl.style.position = 'relative';
+                    yiyuEl.style.top = 'auto';
+                    yiyuEl.style.left = 'auto';
+                    yiyuEl.style.transform = 'none';
+                    yiyuEl.style.width = '100%';
+                    yiyuEl.style.height = '100%';
+                    yiyuEl.style.background = 'transparent';
+                }
+                
+                // 隐藏调试面板
+                var dgElements = document.querySelectorAll('.dg.ac, .dg.main');
+                dgElements.forEach(function(el) { el.style.display = 'none'; });
+            })();
+            """
+            webView.evaluateJavaScript(hideUIScript) { _, error in
+                if let error = error {
+                    print("[SignLanguage] 隐藏 UI 脚本执行失败: \(error)")
+                } else {
+                    print("[SignLanguage] UI 已隐藏，只显示数字人")
+                }
+            }
+            
             // 超时保护：如果 10 秒后还没收到 loadComplete，自动隐藏 loading
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
                 if self.parent.isLoading {
