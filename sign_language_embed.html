@@ -70,30 +70,61 @@
             }
         }
         
+        // 调试信息显示
+        function showDebug(msg) {
+            console.log('[DEBUG]', msg);
+            let debugEl = document.getElementById('debugInfo');
+            if (!debugEl) {
+                debugEl = document.createElement('div');
+                debugEl.id = 'debugInfo';
+                debugEl.style.cssText = 'position:fixed;top:10px;left:10px;background:rgba(0,0,0,0.8);color:#0f0;padding:10px;font-size:12px;z-index:9999;max-width:90%;word-break:break-all;';
+                document.body.appendChild(debugEl);
+            }
+            debugEl.innerHTML += msg + '<br>';
+        }
+        
         // 初始化数字人
         window.addEventListener('load', function() {
+            showDebug('页面加载完成');
+            showDebug('当前域名: ' + window.location.hostname);
+            showDebug('yiyu对象: ' + (typeof yiyu !== 'undefined' ? '存在' : '不存在'));
+            
             try {
+                showDebug('开始初始化 SDK...');
                 yiyu.app.init({
                     name: appSecret,
                     readLocalResource: false
                 });
+                showDebug('init() 调用成功');
                 
                 setTimeout(function() {
-                    // 将 SDK 元素移动到容器内（和 preview.html 一样）
                     const yiyuEl = document.getElementById('yiyuAppElement');
+                    showDebug('yiyuAppElement: ' + (yiyuEl ? '存在' : '不存在'));
+                    showDebug('visibility: ' + (yiyuEl?.style?.visibility || 'N/A'));
+                    
+                    const canvas = document.querySelector('canvas');
+                    showDebug('canvas: ' + (canvas ? '存在' : '不存在'));
+                    
+                    const sceneContainer = document.getElementById('scene-container');
+                    showDebug('scene-container内容: ' + (sceneContainer?.innerHTML?.length || 0) + '字符');
+                    
+                    // 将 SDK 元素移动到容器内
                     const container = document.getElementById('avatarContainer');
                     if (yiyuEl && container) {
                         container.appendChild(yiyuEl);
+                        showDebug('SDK元素已移动到容器');
                     }
                     
                     // 自动翻译 URL 中的文本
                     if (text) {
+                        showDebug('开始翻译: ' + text);
                         yiyu.app.startTranslate(text);
                     }
                     postMessage('loadComplete', 'success');
-                }, 1500);
+                }, 2000);
                 
             } catch (e) {
+                showDebug('错误: ' + e.message);
                 console.error('初始化失败:', e);
                 postMessage('loadError', e.message || 'unknown error');
             }
