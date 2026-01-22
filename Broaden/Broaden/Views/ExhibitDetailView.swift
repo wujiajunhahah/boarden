@@ -7,6 +7,8 @@ struct ExhibitDetailView: View {
 
     @StateObject private var viewModel: ExhibitDetailViewModel
     @StateObject private var askViewModel = AskViewModel()
+    /// 手语数字人协调器 - 用于控制数字人播放，实现跨组件联动
+    @StateObject private var avatarCoordinator = AvatarCoordinator()
     @EnvironmentObject private var appState: AppState
 
     @AppStorage("captionSize") private var captionSizeRaw = CaptionSize.medium.rawValue
@@ -37,12 +39,19 @@ struct ExhibitDetailView: View {
 
                 SignVideoPlayer(
                     filename: exhibit.media.signVideoFilename,
-                    textForTranslation: exhibit.easyText
+                    textForTranslation: viewModel.generatedEasyText ?? exhibit.easyText,
+                    coordinator: avatarCoordinator
                 )
                     .frame(height: 220)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .accessibilityLabel("手语解说视频")
                     .accessibilityHint("展品的手语解说")
+                    .onChange(of: viewModel.generatedEasyText) { _, newValue in
+                        // 当生成的易读版文本更新时，自动发送到数字人进行翻译
+                        if let text = newValue, !text.isEmpty, avatarCoordinator.isLoaded {
+                            avatarCoordinator.sendText(text)
+                        }
+                    }
 
                 CaptionView(
                     captions: CaptionService().loadCaptions(filename: exhibit.media.captionsVttOrSrtFilename),
@@ -122,7 +131,7 @@ struct ExhibitDetailView: View {
                     .accessibilityHint("分享展品信息")
                 }
 
-                AskView(exhibit: exhibit, viewModel: askViewModel)
+                AskView(exhibit: exhibit, viewModel: askViewModel, avatarCoordinator: avatarCoordinator)
             }
             .padding(20)
         }
