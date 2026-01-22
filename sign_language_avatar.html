@@ -80,19 +80,8 @@
             }
         }
         
-        // 等待 yiyu SDK 加载完成
-        async function waitForYiyu(maxAttempts = 50) {
-            for (let i = 0; i < maxAttempts; i++) {
-                if (typeof yiyu !== 'undefined' && yiyu.app) {
-                    return true;
-                }
-                await new Promise(r => setTimeout(r, 100));
-            }
-            return false;
-        }
-        
-        // 初始化数字人
-        window.addEventListener('load', async function() {
+        // 初始化数字人（和 preview.html 保持一致的同步方式）
+        window.addEventListener('load', function() {
             if (!appSecret) {
                 document.getElementById('loading').innerHTML = '<p style="color:red;">缺少 secret 参数</p>';
                 postMessage('loadError', '缺少 secret 参数');
@@ -100,28 +89,22 @@
             }
             
             try {
-                // 等待 SDK 加载
-                const sdkLoaded = await waitForYiyu();
-                if (!sdkLoaded) {
-                    throw new Error('SDK 加载超时');
-                }
-                
                 yiyu.app.init({
                     name: appSecret,
                     readLocalResource: false
                 });
                 
-                // 等待 SDK 初始化
+                // 等待 SDK 初始化完成
                 setTimeout(function() {
                     document.getElementById('loading').classList.add('hidden');
                     
-                    // 开始翻译（text 已被 URLSearchParams 自动解码）
+                    // 开始翻译
                     if (text) {
                         yiyu.app.startTranslate(text);
                     }
                     
                     postMessage('loadComplete', 'success');
-                }, 2000);
+                }, 1500);
                 
             } catch (e) {
                 console.error('初始化失败:', e);
