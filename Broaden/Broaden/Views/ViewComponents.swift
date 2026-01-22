@@ -1,11 +1,12 @@
 import AVKit
 import SwiftUI
+import WebKit
 
 struct SignVideoPlayer: View {
     let filename: String
     /// 用于手语数字人翻译的文本（当没有本地视频时使用）
     var textForTranslation: String = ""
-    
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -22,46 +23,36 @@ struct SignVideoPlayer: View {
                     Haptics.lightImpact()
                 }
         } else {
-            // 回退到占位符界面
-            ZStack {
-                Rectangle()
-                    .fill(.thinMaterial)
-                VStack(spacing: 12) {
-                    SignGestureAnimation(reduceMotion: reduceMotion)
-                        .frame(height: 80)
-                        .accessibilityLabel("手语动画占位")
-                    Text("手语解说占位")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
+            // 加载手语预览页面
+            SignLanguagePreviewWebView()
+                .onAppear {
+                    Haptics.lightImpact()
                 }
-            }
         }
     }
 }
 
-private struct SignGestureAnimation: View {
-    let reduceMotion: Bool
-    @State private var isAnimating = false
+/// 手语预览页面 WebView
+private struct SignLanguagePreviewWebView: UIViewRepresentable {
+    func makeUIView(context: Context) -> WKWebView {
+        let configuration = WKWebViewConfiguration()
+        configuration.allowsInlineMediaPlayback = true
+        configuration.mediaTypesRequiringUserActionForPlayback = []
 
-    var body: some View {
-        HStack(spacing: 24) {
-            Image(systemName: "hand.wave")
-                .font(.system(size: 40, weight: .regular))
-                .rotationEffect(.degrees(isAnimating ? -12 : 12))
-                .offset(y: isAnimating ? -6 : 6)
-            Image(systemName: "hand.raised")
-                .font(.system(size: 40, weight: .regular))
-                .rotationEffect(.degrees(isAnimating ? 10 : -10))
-                .offset(y: isAnimating ? 6 : -6)
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.scrollView.isScrollEnabled = false
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.backgroundColor = .clear
+
+        if let url = URL(string: "https://www.broaden.cc/sign_language_preview.html") {
+            webView.load(URLRequest(url: url))
         }
-        .foregroundStyle(.secondary)
-        .onAppear {
-            guard !reduceMotion else { return }
-            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-                isAnimating = true
-            }
-        }
+
+        return webView
     }
+
+    func updateUIView(_ webView: WKWebView, context: Context) {}
 }
 
 struct CaptionView: View {
