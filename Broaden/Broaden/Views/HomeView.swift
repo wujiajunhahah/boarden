@@ -147,7 +147,7 @@ struct HomeView: View {
     private var featuredSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("展览资讯")
-                .font(.system(size: 20, weight: .semibold))
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Color.primaryText)
                 .padding(.horizontal, 24)
 
@@ -156,7 +156,7 @@ struct HomeView: View {
                     FeaturedCard(
                         title: index == 0 ? "九重之下" : "紫砂成器",
                         subtitle: "国家博物馆",
-                        date: index == 0 ? "2023.11.04-2024.02.18" : "2023.10.15-2024.01.30"
+                        date: index == 0 ? "11.04-12.08 周末" : "10.15-01.30 周末"
                     )
                 }
             }
@@ -188,18 +188,10 @@ struct HomeView: View {
     private var exhibitionListSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("最近浏览")
+                Text("历史行程")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(Color.primaryText)
                 Spacer()
-                if !recentExhibits.isEmpty {
-                    NavigationLink {
-                        ExhibitDetailView(exhibit: recentExhibits.first!)
-                    } label: {
-                        Image(systemName: "list.bullet")
-                            .foregroundStyle(Color.accentBrown)
-                    }
-                }
             }
             .padding(.horizontal, 24)
 
@@ -210,18 +202,20 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 40)
             } else {
-                ForEach(recentExhibits, id: \.id) { exhibit in
-                    NavigationLink {
-                        ExhibitDetailView(exhibit: exhibit)
-                    } label: {
-                        ExhibitRowView(exhibit: exhibit)
+                VStack(spacing: 12) {
+                    ForEach(recentExhibits.prefix(3), id: \.id) { exhibit in
+                        NavigationLink {
+                            ExhibitDetailView(exhibit: exhibit)
+                        } label: {
+                            HistoryRowView(exhibit: exhibit)
+                        }
+                        .accessibilityLabel(exhibit.title)
+                        .accessibilityHint("查看展品详情")
                     }
-                    .accessibilityLabel(exhibit.title)
-                    .accessibilityHint("查看展品详情")
                 }
+                .padding(.horizontal, 24)
             }
         }
-        .padding(.horizontal, 24)
     }
 
     // MARK: - Bottom Navigation
@@ -258,7 +252,7 @@ struct HomeView: View {
 
     private func iconName(for tab: AppTab) -> String {
         switch tab {
-        case .home: return "doc.text.fill"
+        case .home: return "message.fill"
         case .camera: return "camera.fill"
         case .profile: return "person.fill"
         }
@@ -266,7 +260,7 @@ struct HomeView: View {
 
     private func tabTitle(for tab: AppTab) -> String {
         switch tab {
-        case .home: return "展览"
+        case .home: return "消息"
         case .camera: return "拍照"
         case .profile: return "我的"
         }
@@ -290,38 +284,44 @@ struct FeaturedCard: View {
     let date: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 0) {
             // Image placeholder
             Rectangle()
-                .fill(Color.cardBeige.opacity(0.5))
-                .frame(height: 100)
-                .cornerRadius(12)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0x8B/255, green: 0x45/255, blue: 0x13/255),
+                            Color(red: 0x6B/255, green: 0x3A/255, blue: 0x0F/255)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(height: 120)
+                .frame(maxWidth: .infinity)
+                .clipped()
                 .overlay(
-                    Image(systemName: "photo")
-                        .font(.system(size: 30))
-                        .foregroundStyle(Color.secondaryText.opacity(0.5))
+                    Image(systemName: "photo.artframe")
+                        .font(.system(size: 32))
+                        .foregroundStyle(.white.opacity(0.6))
                 )
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(title)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(Color.primaryText)
                     .lineLimit(1)
 
-                Text(subtitle)
-                    .font(.system(size: 11))
+                Text("展览 | \(date)")
+                    .font(.system(size: 12))
                     .foregroundStyle(Color.secondaryText)
-
-                Text(date)
-                    .font(.system(size: 10))
-                    .foregroundStyle(Color.secondaryText.opacity(0.8))
             }
+            .padding(12)
         }
         .frame(maxWidth: .infinity)
-        .padding(12)
         .background(.white)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
 }
 
@@ -391,37 +391,59 @@ struct ExhibitionCard: View {
     }
 }
 
-// MARK: - Exhibit Row View (原有功能)
-private struct ExhibitRowView: View {
+// MARK: - History Row View
+private struct HistoryRowView: View {
     let exhibit: Exhibit
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "square.stack")
-                .font(.title2)
-                .foregroundStyle(Color.accentBrown)
-                .accessibilityHidden(true)
+            // Thumbnail with gradient
+            RoundedRectangle(cornerRadius: 8)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0xD2/255, green: 0x69/255, blue: 0x1E/255),
+                            Color(red: 0xB8/255, green: 0x55/255, blue: 0x18/255)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 80, height: 80)
+                .overlay(
+                    Image(systemName: "building.columns.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(.white.opacity(0.7))
+                )
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(exhibit.title)
-                    .font(.headline)
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(Color.primaryText)
+                    .lineLimit(1)
+
                 Text(exhibit.shortIntro)
-                    .font(.subheadline)
+                    .font(.system(size: 12))
                     .foregroundStyle(Color.secondaryText)
-                    .lineLimit(2)
+                    .lineLimit(1)
+
+                Text(formattedDate)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.secondaryText.opacity(0.8))
             }
 
             Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.footnote)
-                .foregroundStyle(Color.secondaryText)
-                .accessibilityHidden(true)
         }
-        .padding()
-        .background(.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .padding(12)
+        .background(.white)
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.05), radius: 6, x: 0, y: 2)
+    }
+
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy.MM.dd"
+        return formatter.string(from: Date())
     }
 }
 
