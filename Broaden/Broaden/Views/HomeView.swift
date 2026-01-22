@@ -91,7 +91,7 @@ private struct ExhibitRowView: View {
 private struct AccessibilityHintCard: View {
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "caption.bubble")
+            Image(systemName: "captions.bubble")
                 .font(.title2)
                 .foregroundStyle(.tint)
                 .accessibilityHidden(true)

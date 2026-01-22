@@ -20,7 +20,7 @@ struct AskView: View {
                 HStack(spacing: 8) {
                     ForEach(quickQuestions, id: \.self) { question in
                         Button(question) {
-                            viewModel.quickAsk(exhibitId: exhibit.id, question: question)
+                            viewModel.quickAsk(exhibitId: exhibit.id, question: question, contextText: contextText)
                         }
                         .buttonStyle(.bordered)
                         .accessibilityLabel(question)
@@ -30,7 +30,7 @@ struct AskView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 Button {
-                    viewModel.ask(exhibitId: exhibit.id, question: inputText)
+                    viewModel.ask(exhibitId: exhibit.id, question: inputText, contextText: contextText)
                     inputText = ""
                 } label: {
                     Label("提交追问", systemImage: "paperplane")
@@ -63,6 +63,17 @@ struct AskView: View {
                 }
             }
         }
+    }
+
+    private var contextText: String {
+        let refs = exhibit.references.map { "\($0.refId): \($0.snippet)" }.joined(separator: "\n")
+        return """
+        标题：\(exhibit.title)
+        简介：\(exhibit.shortIntro)
+        易读版：\(exhibit.easyText)
+        详细：\(exhibit.detailText)
+        参考：\(refs)
+        """
     }
 
     private var quickQuestions: [String] {

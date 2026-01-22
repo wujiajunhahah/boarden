@@ -3,6 +3,7 @@ import Foundation
 struct AskRequest: Codable, Sendable, Hashable {
     let exhibitId: String
     let question: String
+    let contextText: String?
 }
 
 struct AskResponse: Codable, Sendable, Hashable {

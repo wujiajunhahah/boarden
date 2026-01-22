@@ -1,10 +1,13 @@
 import SwiftUI
+import UIKit
+import MapKit
 
 struct ExhibitDetailView: View {
     let exhibit: Exhibit
 
     @StateObject private var viewModel: ExhibitDetailViewModel
     @StateObject private var askViewModel = AskViewModel()
+    @EnvironmentObject private var appState: AppState
 
     @AppStorage("captionSize") private var captionSizeRaw = CaptionSize.medium.rawValue
     @AppStorage("captionBackground") private var captionBackgroundEnabled = true
@@ -19,6 +22,19 @@ struct ExhibitDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                if let url = appState.artifactPhotoURL(for: exhibit.id),
+                   let image = UIImage(contentsOfFile: url.path) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("文物主体照片")
+                            .font(.headline)
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .accessibilityLabel("文物主体照片")
+                    }
+                }
+
                 SignVideoPlayer(filename: exhibit.media.signVideoFilename)
                     .frame(height: 220)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -37,12 +53,12 @@ struct ExhibitDetailView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("易读版")
                         .font(.headline)
-                    Text(exhibit.easyText)
+                    Text(viewModel.generatedEasyText ?? exhibit.easyText)
                         .font(.body)
                 }
 
                 DisclosureGroup(isExpanded: $viewModel.showDetailText) {
-                    Text(exhibit.detailText)
+                    Text(viewModel.generatedDetailText ?? exhibit.detailText)
                         .font(.body)
                         .foregroundStyle(.secondary)
                 } label: {
@@ -53,6 +69,35 @@ struct ExhibitDetailView: View {
                 .accessibilityHint("展开查看完整解说")
 
                 GlossaryChips(items: exhibit.glossary)
+
+                if let location = appState.locationRecord(for: exhibit.id) {
+                    Button {
+                        let coordinate = CLLocationCoordinate2D(
+                            latitude: location.latitude,
+                            longitude: location.longitude
+                        )
+                        let placemark = MKPlacemark(coordinate: coordinate)
+                        let mapItem = MKMapItem(placemark: placemark)
+                        mapItem.name = location.displayName
+                        mapItem.openInMaps()
+                    } label: {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("拍摄位置")
+                                .font(.headline)
+                            Text(location.displayName)
+                                .font(.body)
+                            Text(String(format: "%.5f, %.5f", location.latitude, location.longitude))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("拍摄位置")
+                    .accessibilityHint("打开地图查看位置并导航")
+                }
 
                 HStack(spacing: 12) {
                     Button {
@@ -80,6 +125,9 @@ struct ExhibitDetailView: View {
         }
         .navigationTitle(exhibit.title)
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            viewModel.loadGeneratedNarration(title: exhibit.title)
+        }
     }
 
     private var captionSize: CaptionSize {

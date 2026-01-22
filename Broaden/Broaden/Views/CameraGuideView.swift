@@ -1,13 +1,14 @@
 import SwiftUI
 import AVFoundation
+import UIKit
 
 struct CameraGuideView: View {
     @EnvironmentObject private var appState: AppState
     @StateObject private var viewModel = CameraGuideViewModel()
-    @AppStorage("recognitionMode") private var recognitionModeRaw = RecognitionMode.qrOnly.rawValue
-
     @State private var cameraController = CameraSessionController()
     @State private var showPermissionAlert = false
+    @State private var lastCapturedPreview: UIImage?
+    @State private var subjectService = SubjectMaskingService()
 
     var body: some View {
         ZStack {
@@ -22,6 +23,7 @@ struct CameraGuideView: View {
                 Spacer()
                 statusOverlay
                 mockControls
+                captureControls
             }
             .padding()
         }
@@ -30,6 +32,10 @@ struct CameraGuideView: View {
         .onAppear {
             viewModel.updateExhibits(appState.exhibits)
             viewModel.checkAuthorization()
+            viewModel.onExhibitGenerated = { exhibit in
+                appState.upsertExhibit(exhibit)
+                appState.addRecent(exhibit: exhibit)
+            }
             configureCamera()
         }
         .onChange(of: viewModel.authorizationState) { _, state in
@@ -38,12 +44,13 @@ struct CameraGuideView: View {
                 viewModel.startScanning()
             }
         }
-        .onChange(of: recognitionModeRaw) { _, _ in
-            cameraController.enableTextRecognition = recognitionMode == .qrAndText
-        }
         .sheet(isPresented: $viewModel.isSheetPresented) {
             if case let .recognized(exhibit) = viewModel.recognitionState {
-                ExhibitSheetView(exhibit: exhibit)
+                ExhibitSheetView(
+                    exhibit: exhibit,
+                    stage: viewModel.captureStage,
+                    ocrSummary: viewModel.lastOCRSummary
+                )
                     .presentationDetents([.height(180), .medium, .large])
                     .presentationDragIndicator(.visible)
             }
@@ -81,11 +88,11 @@ struct CameraGuideView: View {
                 .accessibilityLabel("重试识别")
                 .accessibilityHint("重新开始识别展品")
             } else {
-                Text("对准展品二维码或展牌")
+                Text(stageHint)
                     .font(.callout)
                     .padding(12)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                    .accessibilityLabel("对准展品二维码或展牌")
+                    .accessibilityLabel(stageHint)
             }
         }
     }
@@ -102,7 +109,12 @@ struct CameraGuideView: View {
                 viewModel.handleRecognizedText(text)
             }
         }
-        cameraController.enableTextRecognition = recognitionMode == .qrAndText
+        cameraController.onPhotoCaptured = { data in
+            Task { @MainActor in
+                lastCapturedPreview = UIImage(data: data)
+                handlePhotoData(data)
+            }
+        }
 
         if viewModel.authorizationState == .notDetermined {
             Task {
@@ -111,8 +123,75 @@ struct CameraGuideView: View {
         }
     }
 
-    private var recognitionMode: RecognitionMode {
-        RecognitionMode(rawValue: recognitionModeRaw) ?? .qrOnly
+    private func handlePhotoData(_ data: Data) {
+        switch viewModel.captureStage {
+        case .signboard:
+            viewModel.handleSignboardPhoto(data)
+        case .artifact(let exhibit):
+            Task {
+                let inputImage = UIImage(data: data)
+                let maskedImage = await subjectService.extractSubject(from: inputImage)
+                let outputData = maskedImage?.pngData() ?? data
+
+                if let url = appState.saveArtifactPhoto(data: outputData, exhibitId: exhibit.id) {
+                    viewModel.handleArtifactPhoto(outputData, saveURL: url)
+                    await appState.captureLocation(for: exhibit.id)
+                } else {
+                    viewModel.recognitionState = .failed("保存照片失败，请重试")
+                }
+            }
+        case .done:
+            break
+        }
+    }
+
+    private var stageHint: String {
+        switch viewModel.captureStage {
+        case .signboard:
+            return "拍摄展牌/文字以识别展品"
+        case .artifact:
+            return "拍摄文物主体以保存预览"
+        case .done:
+            return "已完成拍摄，可查看详情"
+        }
+    }
+
+    private var captureControls: some View {
+        VStack(spacing: 10) {
+            Button {
+                cameraController.capturePhoto()
+            } label: {
+                Label(captureButtonTitle, systemImage: "camera")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(viewModel.isProcessing)
+            .accessibilityLabel("拍照识别")
+            .accessibilityHint("拍摄展牌或文物主体")
+
+            if let preview = lastCapturedPreview {
+                Image(uiImage: preview)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 120)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .accessibilityLabel("最近拍摄预览")
+            }
+        }
+    }
+
+    private var captureButtonTitle: String {
+        if viewModel.isProcessing {
+            return "识别中..."
+        }
+        switch viewModel.captureStage {
+        case .signboard:
+            return "拍展牌识别"
+        case .artifact:
+            return "拍文物主体"
+        case .done:
+            return "已完成拍摄"
+        }
     }
 
     private var mockControls: some View {
@@ -134,6 +213,8 @@ struct CameraGuideView: View {
 private struct ExhibitSheetView: View {
     @EnvironmentObject private var appState: AppState
     let exhibit: Exhibit
+    let stage: CameraGuideViewModel.CaptureStage
+    let ocrSummary: OCRSummary?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -148,6 +229,32 @@ private struct ExhibitSheetView: View {
             Text(exhibit.shortIntro)
                 .font(.body)
                 .foregroundStyle(.secondary)
+
+            if let summary = ocrSummary {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("识别摘要")
+                        .font(.headline)
+                    Text("标题：\(summary.title)")
+                        .font(.subheadline)
+                    if let date = summary.dateText {
+                        Text("年代：\(date)")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    Text("简介：\(summary.intro)")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(12)
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+            }
+
+            if case .artifact = stage {
+                Label("下一步：拍摄文物主体照片", systemImage: "camera")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel("下一步拍摄文物主体照片")
+            }
 
             NavigationLink {
                 ExhibitDetailView(exhibit: exhibit)

@@ -1,15 +1,18 @@
 import AVFoundation
 import Vision
 
-final class CameraSessionController: NSObject {
+final class CameraSessionController: NSObject, @unchecked Sendable {
     let session = AVCaptureSession()
     private let sessionQueue = DispatchQueue(label: "camera.session.queue")
     private let videoOutputQueue = DispatchQueue(label: "camera.video.output.queue")
+    private let stateQueue = DispatchQueue(label: "camera.state.queue")
 
     var onQRCodeDetected: (@MainActor @Sendable (String) -> Void)?
     var onTextDetected: (@MainActor @Sendable (String) -> Void)?
+    var onPhotoCaptured: (@MainActor @Sendable (Data) -> Void)?
 
     var enableTextRecognition = false
+    private let photoOutput = AVCapturePhotoOutput()
 
     private var lastDetectionTime: Date = .distantPast
     private let detectionCooldown: TimeInterval = 1.5
@@ -42,6 +45,10 @@ final class CameraSessionController: NSObject {
                 videoOutput.setSampleBufferDelegate(self, queue: self.videoOutputQueue)
             }
 
+            if self.session.canAddOutput(self.photoOutput) {
+                self.session.addOutput(self.photoOutput)
+            }
+
             self.session.commitConfiguration()
         }
     }
@@ -62,11 +69,34 @@ final class CameraSessionController: NSObject {
         }
     }
 
+    func capturePhoto() {
+        sessionQueue.async {
+            let settings = AVCapturePhotoSettings()
+            self.photoOutput.capturePhoto(with: settings, delegate: self)
+        }
+    }
+
     private func shouldHandleDetection() -> Bool {
-        let now = Date()
-        guard now.timeIntervalSince(lastDetectionTime) > detectionCooldown else { return false }
-        lastDetectionTime = now
-        return true
+        stateQueue.sync {
+            let now = Date()
+            guard now.timeIntervalSince(lastDetectionTime) > detectionCooldown else { return false }
+            lastDetectionTime = now
+            return true
+        }
+    }
+
+    private func beginTextProcessingIfNeeded() -> Bool {
+        stateQueue.sync {
+            guard !isProcessingText else { return false }
+            isProcessingText = true
+            return true
+        }
+    }
+
+    private func endTextProcessing() {
+        stateQueue.async {
+            self.isProcessingText = false
+        }
     }
 }
 
@@ -90,12 +120,11 @@ extension CameraSessionController: AVCaptureMetadataOutputObjectsDelegate {
 extension CameraSessionController: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard enableTextRecognition else { return }
-        guard !isProcessingText else { return }
+        guard beginTextProcessingIfNeeded() else { return }
         guard shouldHandleDetection() else { return }
-        isProcessingText = true
 
         let request = VNRecognizeTextRequest { [weak self] request, _ in
-            defer { self?.isProcessingText = false }
+            self?.endTextProcessing()
             guard let observations = request.results as? [VNRecognizedTextObservation] else { return }
             let texts = observations.compactMap { $0.topCandidates(1).first?.string }
             let merged = texts.joined(separator: " ")
@@ -111,5 +140,15 @@ extension CameraSessionController: AVCaptureVideoDataOutputSampleBufferDelegate 
 
         let handler = VNImageRequestHandler(cmSampleBuffer: sampleBuffer, orientation: .up)
         try? handler.perform([request])
+    }
+}
+
+extension CameraSessionController: AVCapturePhotoCaptureDelegate {
+    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+        guard error == nil, let data = photo.fileDataRepresentation() else { return }
+        let handler = onPhotoCaptured
+        Task { @MainActor in
+            handler?(data)
+        }
     }
 }

@@ -4,40 +4,89 @@ protocol AskServicing: Sendable {
     func ask(request: AskRequest) async throws -> AskResponse?
 }
 
-actor MockAskService: AskServicing {
-    private let templates: [String: AskResponse] = [
-        "default": AskResponse(
-            answerSimple: "这件展品的重要性主要体现在其工艺与时代背景。它帮助我们理解当时的社会审美与技术水平。",
-            answerDetail: "根据馆内记录，这件展品在同类器物中保存完整，具有代表性。引用片段可能来自编目说明与修复档案。",
-            citations: ["REF-01", "REF-03"],
-            confidence: .medium,
-            signScript: "展品的重要性：工艺精细，能代表当时的审美和技术。"
-        )
-    ]
+enum AskServiceError: Error, LocalizedError, Sendable {
+    case missingAPIKey
+    case requestFailed(statusCode: Int)
+    case invalidResponse
+
+    var errorDescription: String? {
+        switch self {
+        case .missingAPIKey:
+            return "未配置 DeepSeek API Key"
+        case .requestFailed(let statusCode):
+            return "联网失败（HTTP \(statusCode)）"
+        case .invalidResponse:
+            return "返回格式无效，请稍后重试"
+        }
+    }
+}
+
+struct DeepSeekAskService: AskServicing {
+    private let service: DeepSeekServicing = DeepSeekService()
 
     func ask(request: AskRequest) async throws -> AskResponse? {
         let trimmed = request.question.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty {
-            return nil
+        guard !trimmed.isEmpty else { return nil }
+
+        if Secrets.shared.deepseekApiKey == nil {
+            throw AskServiceError.missingAPIKey
         }
-        if trimmed.contains("修复") {
-            return AskResponse(
-                answerSimple: "馆方记录了多次维护，主要是加固与清洁。",
-                answerDetail: "档案显示在上世纪末完成结构加固，并于近年进行表面清洁与环境监测调整。",
-                citations: ["REF-02"],
-                confidence: .high,
-                signScript: "修复记录：曾加固和清洁，近年继续监测保护。"
-            )
+
+        let system = """
+        你是博物馆无障碍导览助手。只能根据提供的展品上下文回答。
+        若上下文不足，请明确说明“馆方资料未包含该细节”，不要编造。
+        输出严格 JSON，不要解释。
+        JSON 字段：answer_simple, answer_detail, sign_script, citations, confidence
+        confidence 只能是 high/medium/low
+        """
+        let user = """
+        展品ID：\(request.exhibitId)
+        上下文（仅供参考，不要超出）：\(request.contextText ?? "无")
+        用户问题：\(trimmed)
+        请生成 JSON。
+        """
+
+        guard let response = try await service.generate(system: system, user: user) else {
+            throw AskServiceError.invalidResponse
         }
-        if trimmed.contains("术语") {
-            return AskResponse(
-                answerSimple: "术语通常描述工艺、材质或历史。",
-                answerDetail: "可查看展牌中的术语卡片与馆内词汇表。",
-                citations: ["REF-05"],
-                confidence: .medium,
-                signScript: "术语解释：多与工艺、材质和历史相关。"
-            )
+        guard let data = extractJSONData(from: response.text),
+              let parsed = try? JSONDecoder().decode(AskResponseDTO.self, from: data) else {
+            throw AskServiceError.invalidResponse
         }
-        return templates["default"]
+
+        return AskResponse(
+            answerSimple: parsed.answer_simple,
+            answerDetail: parsed.answer_detail,
+            citations: parsed.citations,
+            confidence: parsed.confidence,
+            signScript: parsed.sign_script
+        )
+    }
+
+    private struct AskResponseDTO: Codable, Sendable {
+        let answer_simple: String
+        let answer_detail: String
+        let sign_script: String
+        let citations: [String]
+        let confidence: ConfidenceLevel
+    }
+
+    private func extractJSONData(from text: String) -> Data? {
+        if let data = text.data(using: .utf8),
+           (try? JSONSerialization.jsonObject(with: data)) != nil {
+            return data
+        }
+        guard let start = text.firstIndex(of: "{") else { return nil }
+        guard let end = text.lastIndex(of: "}") else { return nil }
+        let substring = String(text[start...end])
+        return substring.data(using: .utf8)
+    }
+}
+
+actor MockAskService: AskServicing {
+    func ask(request: AskRequest) async throws -> AskResponse? {
+        let trimmed = request.question.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        throw AskServiceError.missingAPIKey
     }
 }

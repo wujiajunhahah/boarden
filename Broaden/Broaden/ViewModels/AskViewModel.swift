@@ -9,11 +9,15 @@ final class AskViewModel: ObservableObject {
     private let askService: AskServicing
     private let cache = AnswerCache()
 
-    init(askService: AskServicing = MockAskService()) {
-        self.askService = askService
+    init(askService: AskServicing? = nil) {
+        if let askService {
+            self.askService = askService
+        } else {
+            self.askService = DeepSeekAskService()
+        }
     }
 
-    func ask(exhibitId: String, question: String) {
+    func ask(exhibitId: String, question: String, contextText: String? = nil) {
         let trimmed = question.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
@@ -24,7 +28,7 @@ final class AskViewModel: ObservableObject {
         Haptics.lightImpact()
 
         Task {
-            let request = AskRequest(exhibitId: exhibitId, question: trimmed)
+            let request = AskRequest(exhibitId: exhibitId, question: trimmed, contextText: contextText)
             if let cached = await cache.load(for: request) {
                 appendResponse(cached)
                 return
@@ -39,7 +43,7 @@ final class AskViewModel: ObservableObject {
                     handleNoResult()
                 }
             } catch {
-                handleNoResult()
+                handleError(error)
             }
         }
     }
@@ -52,10 +56,19 @@ final class AskViewModel: ObservableObject {
 
     private func handleNoResult() {
         isLoading = false
-        errorMessage = "馆方资料未包含该细节"
+        errorMessage = "未获取到回答，请稍后重试"
     }
 
-    func quickAsk(exhibitId: String, question: String) {
-        ask(exhibitId: exhibitId, question: question)
+    private func handleError(_ error: Error) {
+        isLoading = false
+        if let serviceError = error as? AskServiceError {
+            errorMessage = serviceError.localizedDescription
+        } else {
+            errorMessage = "请求失败，请稍后重试"
+        }
+    }
+
+    func quickAsk(exhibitId: String, question: String, contextText: String? = nil) {
+        ask(exhibitId: exhibitId, question: question, contextText: contextText)
     }
 }

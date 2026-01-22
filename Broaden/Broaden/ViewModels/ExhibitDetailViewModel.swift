@@ -4,10 +4,20 @@ import Foundation
 final class ExhibitDetailViewModel: ObservableObject {
     @Published var isFavorite = false
     @Published var showDetailText = false
+    @Published var generatedEasyText: String?
+    @Published var generatedDetailText: String?
 
     private let favoritesKey = "favoriteExhibitIds"
+    private let narrationService: ExhibitNarrationServicing
 
-    init(exhibitId: String) {
+    init(exhibitId: String, narrationService: ExhibitNarrationServicing? = nil) {
+        if let narrationService {
+            self.narrationService = narrationService
+        } else if Secrets.shared.deepseekApiKey != nil {
+            self.narrationService = DeepSeekNarrationService()
+        } else {
+            self.narrationService = DeepSeekNarrationService()
+        }
         loadFavorite(exhibitId: exhibitId)
     }
 
@@ -30,5 +40,19 @@ final class ExhibitDetailViewModel: ObservableObject {
             ids.removeAll { $0 == exhibitId }
         }
         UserDefaults.standard.set(ids, forKey: favoritesKey)
+    }
+
+    func loadGeneratedNarration(title: String) {
+        guard Secrets.shared.deepseekApiKey != nil else { return }
+        Task {
+            do {
+                if let narration = try await narrationService.generate(title: title) {
+                    generatedEasyText = narration.easyText
+                    generatedDetailText = narration.detailText
+                }
+            } catch {
+                // Keep local text fallback.
+            }
+        }
     }
 }
