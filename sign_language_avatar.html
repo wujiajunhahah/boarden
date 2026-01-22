@@ -64,10 +64,12 @@
     </div>
     
     <script>
-        // 从 URL 参数获取配置
+        // 从 URL 参数获取要翻译的文本
         const params = new URLSearchParams(window.location.search);
         const text = params.get('text') || '';
-        const appSecret = params.get('secret') || '';
+        
+        // 硬编码 APPSecret（和 preview.html 保持一致）
+        const appSecret = 'MQd1gWyzgPzaQlh+VRcAl905nAEAzbOLyjRodRbgi5PUlS1vb/ivtAuml8aPiukV/U13SDXKw8i4dIZKIUUl7HkJ88jd4HVb0UqnL3kaghmvCRflUm/QxwmDDGGvqdVMQYhRAzSLj5kpfBh6j2DPgf+IarrSWeehIwii6aYtWTs=';
         
         // 安全地发送消息到 iOS
         function postMessage(handler, msg) {
@@ -82,12 +84,6 @@
         
         // 初始化数字人（和 preview.html 保持一致的同步方式）
         window.addEventListener('load', function() {
-            if (!appSecret) {
-                document.getElementById('loading').innerHTML = '<p style="color:red;">缺少 secret 参数</p>';
-                postMessage('loadError', '缺少 secret 参数');
-                return;
-            }
-            
             try {
                 yiyu.app.init({
                     name: appSecret,
