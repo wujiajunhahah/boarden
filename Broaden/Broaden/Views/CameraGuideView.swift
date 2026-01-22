@@ -224,11 +224,26 @@ struct CameraGuideView: View {
         guard let item = item else { return }
 
         Task {
-            if let data = try? await item.loadTransferable(type: Data.self),
-               let image = UIImage(data: data) {
-                await MainActor.run {
-                    lastCapturedPreview = image
-                    handlePhotoData(data)
+            do {
+                // 尝试加载图片数据
+                if let data = try? await item.loadTransferable(type: Data.self) {
+                    await MainActor.run {
+                        if let image = UIImage(data: data) {
+                            lastCapturedPreview = image
+                            // 如果是 done 状态，重置为 signboard 状态来处理新照片
+                            if case .done = viewModel.captureStage {
+                                viewModel.reset()
+                            }
+                            handlePhotoData(data)
+                        } else {
+                            // 如果 Data 无法直接创建 UIImage，尝试其他方式
+                            viewModel.recognitionState = .failed("不支持的图片格式")
+                        }
+                    }
+                } else {
+                    await MainActor.run {
+                        viewModel.recognitionState = .failed("无法加载选中的照片")
+                    }
                 }
             }
         }
@@ -252,7 +267,9 @@ struct CameraGuideView: View {
                 }
             }
         case .done:
-            break
+            // 如果是 done 状态，重置为 signboard 状态来处理新照片
+            viewModel.reset()
+            viewModel.handleSignboardPhoto(data)
         }
     }
 
