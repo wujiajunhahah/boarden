@@ -69,8 +69,19 @@
             }
         }
         
+        // 等待 yiyu SDK 加载完成
+        async function waitForYiyu(maxAttempts = 50) {
+            for (let i = 0; i < maxAttempts; i++) {
+                if (typeof yiyu !== 'undefined' && yiyu.app) {
+                    return true;
+                }
+                await new Promise(r => setTimeout(r, 100));
+            }
+            return false;
+        }
+        
         // 初始化数字人
-        window.addEventListener('load', function() {
+        window.addEventListener('load', async function() {
             if (!appSecret) {
                 document.getElementById('loading').innerHTML = '<p style="color:red;">缺少 secret 参数</p>';
                 postMessage('loadError', '缺少 secret 参数');
@@ -78,6 +89,12 @@
             }
             
             try {
+                // 等待 SDK 加载
+                const sdkLoaded = await waitForYiyu();
+                if (!sdkLoaded) {
+                    throw new Error('SDK 加载超时');
+                }
+                
                 yiyu.app.init({
                     name: appSecret,
                     readLocalResource: false
@@ -97,7 +114,7 @@
                 
             } catch (e) {
                 console.error('初始化失败:', e);
-                document.getElementById('loading').innerHTML = '<p style="color:red;">加载失败</p>';
+                document.getElementById('loading').innerHTML = '<p style="color:red;">加载失败: ' + e.message + '</p>';
                 postMessage('loadError', e.message || 'unknown error');
             }
         });
