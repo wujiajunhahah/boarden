@@ -20,6 +20,32 @@
             align-items: center;
             padding: 20px;
         }
+        /* 嵌入模式 - 透明背景，只显示数字人 */
+        body.embed-mode {
+            background: transparent !important;
+            padding: 0;
+            justify-content: center;
+        }
+        body.embed-mode h1,
+        body.embed-mode .container {
+            display: none !important;
+        }
+        body.embed-mode #yiyuAppElement {
+            position: relative !important;
+            top: auto !important;
+            left: auto !important;
+            transform: none !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: transparent !important;
+        }
+        body.embed-mode #scene-container {
+            background: transparent !important;
+        }
+        body.embed-mode .dg.ac,
+        body.embed-mode .dg.main {
+            display: none !important;
+        }
         h1 {
             color: white;
             margin-bottom: 20px;
@@ -168,6 +194,27 @@
     <script>
         let isInitialized = false;
         
+        // 检查是否为嵌入模式
+        const urlParams = new URLSearchParams(window.location.search);
+        const isEmbedMode = urlParams.get('embed') === 'true';
+        const embedText = urlParams.get('text') || '';
+        
+        // 嵌入模式下添加 CSS 类
+        if (isEmbedMode) {
+            document.body.classList.add('embed-mode');
+        }
+        
+        // 安全地发送消息到 iOS
+        function postMessage(handler, msg) {
+            try {
+                if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers[handler]) {
+                    window.webkit.messageHandlers[handler].postMessage(msg);
+                }
+            } catch (e) {
+                console.log('postMessage error:', e);
+            }
+        }
+        
         // 初始化手语数字人
         window.addEventListener('load', function() {
             try {
@@ -178,19 +225,39 @@
                 
                 setTimeout(function() {
                     isInitialized = true;
-                    // 将 SDK 创建的元素移动到我们的容器内
-                    const yiyuEl = document.getElementById('yiyuAppElement');
-                    const container = document.getElementById('avatarContainer');
-                    if (yiyuEl && container) {
-                        container.innerHTML = '';
-                        container.appendChild(yiyuEl);
+                    
+                    if (isEmbedMode) {
+                        // 嵌入模式：自动翻译 URL 中的文本
+                        if (embedText) {
+                            yiyu.app.startTranslate(embedText);
+                        }
+                        postMessage('loadComplete', 'success');
+                    } else {
+                        // 普通模式：将 SDK 元素移动到容器内
+                        const yiyuEl = document.getElementById('yiyuAppElement');
+                        const container = document.getElementById('avatarContainer');
+                        if (yiyuEl && container) {
+                            container.innerHTML = '';
+                            container.appendChild(yiyuEl);
+                        }
+                        updateStatus('手语数字人已就绪', 'success');
                     }
-                    updateStatus('手语数字人已就绪', 'success');
                 }, 1500);
             } catch (e) {
-                updateStatus('初始化失败: ' + e.message, 'error');
+                if (isEmbedMode) {
+                    postMessage('loadError', e.message || 'unknown error');
+                } else {
+                    updateStatus('初始化失败: ' + e.message, 'error');
+                }
             }
         });
+        
+        // 暴露翻译函数供 iOS 调用
+        window.translateText = function(newText) {
+            if (typeof yiyu !== 'undefined' && yiyu.app) {
+                yiyu.app.startTranslate(newText);
+            }
+        };
 
         function translateText() {
             const text = document.getElementById('inputText').value.trim();

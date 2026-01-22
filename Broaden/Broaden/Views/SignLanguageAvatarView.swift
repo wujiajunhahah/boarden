@@ -1,8 +1,8 @@
 import SwiftUI
 import WebKit
 
-/// 手语数字人在线页面 URL（部署在 www.broaden.cc，已在手语开放平台绑定）
-private let signLanguageAvatarBaseURL = "https://www.broaden.cc/sign_language_avatar.html"
+/// 手语数字人在线页面 URL（使用 preview.html 的嵌入模式，已验证可正常工作）
+private let signLanguageAvatarBaseURL = "https://www.broaden.cc/sign_language_preview.html"
 
 /// 手语数字人视图 - 使用 WKWebView 加载手语翻译服务
 struct SignLanguageAvatarView: View {
@@ -89,10 +89,10 @@ struct SignLanguageWebView: UIViewRepresentable {
         // 存储 webView 引用以便后续使用
         context.coordinator.webView = webView
         
-        // 构建在线页面 URL（部署在 broaden.cc，APPSecret 已在 HTML 中硬编码）
-        // URL 参数: text=翻译文本
+        // 构建在线页面 URL（使用 preview.html 的嵌入模式）
+        // URL 参数: embed=true, text=翻译文本
         if let encodedText = textToTranslate.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-           let url = URL(string: "\(signLanguageAvatarBaseURL)?text=\(encodedText)") {
+           let url = URL(string: "\(signLanguageAvatarBaseURL)?embed=true&text=\(encodedText)") {
             print("[SignLanguage] 加载在线页面: \(url.absoluteString)")
             webView.load(URLRequest(url: url))
         } else {
