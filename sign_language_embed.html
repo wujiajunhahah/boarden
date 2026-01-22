@@ -87,41 +87,71 @@
         window.addEventListener('load', function() {
             showDebug('页面加载完成');
             showDebug('当前域名: ' + window.location.hostname);
+            showDebug('完整URL: ' + window.location.href);
             showDebug('yiyu对象: ' + (typeof yiyu !== 'undefined' ? '存在' : '不存在'));
+            
+            // 检查 yiyu 对象的属性
+            if (typeof yiyu !== 'undefined') {
+                showDebug('yiyu.app: ' + (typeof yiyu.app !== 'undefined' ? '存在' : '不存在'));
+                showDebug('yiyu 属性: ' + Object.keys(yiyu).join(', '));
+            }
             
             try {
                 showDebug('开始初始化 SDK...');
+                showDebug('APPSecret前20字符: ' + appSecret.substring(0, 20) + '...');
+                
                 yiyu.app.init({
                     name: appSecret,
                     readLocalResource: false
                 });
                 showDebug('init() 调用成功');
                 
-                setTimeout(function() {
+                // 持续监控 SDK 状态
+                let checkCount = 0;
+                const checkInterval = setInterval(function() {
+                    checkCount++;
                     const yiyuEl = document.getElementById('yiyuAppElement');
-                    showDebug('yiyuAppElement: ' + (yiyuEl ? '存在' : '不存在'));
-                    showDebug('visibility: ' + (yiyuEl?.style?.visibility || 'N/A'));
-                    
                     const canvas = document.querySelector('canvas');
-                    showDebug('canvas: ' + (canvas ? '存在' : '不存在'));
-                    
                     const sceneContainer = document.getElementById('scene-container');
-                    showDebug('scene-container内容: ' + (sceneContainer?.innerHTML?.length || 0) + '字符');
                     
-                    // 将 SDK 元素移动到容器内
-                    const container = document.getElementById('avatarContainer');
-                    if (yiyuEl && container) {
-                        container.appendChild(yiyuEl);
-                        showDebug('SDK元素已移动到容器');
-                    }
+                    showDebug('--- 检查 #' + checkCount + ' ---');
+                    showDebug('visibility: ' + (yiyuEl?.style?.visibility || 'N/A'));
+                    showDebug('canvas: ' + (canvas ? '存在 (' + canvas.width + 'x' + canvas.height + ')' : '不存在'));
+                    showDebug('scene内容: ' + (sceneContainer?.innerHTML?.length || 0) + '字符');
                     
-                    // 自动翻译 URL 中的文本
-                    if (text) {
-                        showDebug('开始翻译: ' + text);
-                        yiyu.app.startTranslate(text);
+                    // 如果 canvas 出现或检查超过 10 次，停止检查
+                    if (canvas || checkCount >= 10) {
+                        clearInterval(checkInterval);
+                        
+                        if (canvas) {
+                            showDebug('✓ 数字人加载成功!');
+                        } else {
+                            showDebug('✗ 数字人加载失败，可能原因：');
+                            showDebug('1. 域名未在开放平台绑定');
+                            showDebug('2. APPSecret 无效');
+                            showDebug('3. SDK 服务器问题');
+                            
+                            // 尝试强制显示，看看有什么
+                            if (yiyuEl) {
+                                yiyuEl.style.visibility = 'visible';
+                                showDebug('已尝试强制显示 yiyuAppElement');
+                            }
+                        }
+                        
+                        // 移动到容器
+                        const container = document.getElementById('avatarContainer');
+                        if (yiyuEl && container) {
+                            container.appendChild(yiyuEl);
+                        }
+                        
+                        // 翻译文本
+                        if (text) {
+                            showDebug('开始翻译: ' + text);
+                            yiyu.app.startTranslate(text);
+                        }
+                        postMessage('loadComplete', 'success');
                     }
-                    postMessage('loadComplete', 'success');
-                }, 2000);
+                }, 1000);
                 
             } catch (e) {
                 showDebug('错误: ' + e.message);
