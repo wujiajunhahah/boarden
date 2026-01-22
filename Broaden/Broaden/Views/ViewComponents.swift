@@ -3,15 +3,26 @@ import SwiftUI
 
 struct SignVideoPlayer: View {
     let filename: String
+    /// 用于手语数字人翻译的文本（当没有本地视频时使用）
+    var textForTranslation: String = ""
+    
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         if let url = Bundle.main.url(forResource: filename, withExtension: nil) {
+            // 优先使用本地视频文件
             VideoPlayer(player: AVPlayer(url: url))
                 .onAppear {
                     Haptics.lightImpact()
                 }
+        } else if !textForTranslation.isEmpty && Secrets.shared.signLanguageAppSecret != nil {
+            // 使用手语数字人服务进行实时翻译
+            SignLanguageAvatarView(textToTranslate: textForTranslation)
+                .onAppear {
+                    Haptics.lightImpact()
+                }
         } else {
+            // 回退到占位符界面
             ZStack {
                 Rectangle()
                     .fill(.thinMaterial)

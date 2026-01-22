@@ -35,7 +35,10 @@ struct ExhibitDetailView: View {
                     }
                 }
 
-                SignVideoPlayer(filename: exhibit.media.signVideoFilename)
+                SignVideoPlayer(
+                    filename: exhibit.media.signVideoFilename,
+                    textForTranslation: exhibit.easyText
+                )
                     .frame(height: 220)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .accessibilityLabel("手语解说视频")
