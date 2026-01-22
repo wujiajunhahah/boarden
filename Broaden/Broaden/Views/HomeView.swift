@@ -24,15 +24,19 @@ struct HomeView: View {
                     // Header Section
                     headerSection
 
-                    // Featured Exhibitions
-                    featuredSection
-                        .padding(.top, 24)
+                    // Quick Actions - 原有功能
+                    quickActionsSection
+                        .padding(.top, 20)
 
-                    // Museum Filter
+                    // Featured Exhibitions - 新设计
+                    featuredSection
+                        .padding(.top, 20)
+
+                    // Museum Filter - 新设计
                     museumFilterSection
                         .padding(.top, 20)
 
-                    // Exhibition List
+                    // Exhibition List - 整合原有最近浏览
                     exhibitionListSection
                         .padding(.top, 16)
                         .padding(.bottom, 100)
@@ -90,6 +94,55 @@ struct HomeView: View {
         }
     }
 
+    // MARK: - Quick Actions (原有功能)
+    private var quickActionsSection: some View {
+        VStack(spacing: 12) {
+            // 开始导览按钮
+            NavigationLink {
+                CameraGuideView()
+            } label: {
+                HStack {
+                    Image(systemName: "camera.viewfinder")
+                        .font(.system(size: 18))
+                    Text("进入相机导览")
+                        .font(.system(size: 16, weight: .semibold))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(Color.accentBrown)
+                .cornerRadius(16)
+            }
+            .accessibilityLabel("进入相机导览")
+            .accessibilityHint("打开相机识别展品")
+
+            // 无障碍提示卡片
+            HStack(spacing: 12) {
+                Image(systemName: "captions.bubble")
+                    .font(.title2)
+                    .foregroundStyle(Color.accentBrown)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("无障碍提示")
+                        .font(.headline)
+                        .foregroundStyle(Color.primaryText)
+                    Text("字幕字号与背景遮罩可在设置中调整。")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.secondaryText)
+                }
+                Spacer()
+            }
+            .padding()
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .accessibilityLabel("无障碍提示")
+            .accessibilityHint("字幕字号与背景遮罩可在设置中调整")
+        }
+        .padding(.horizontal, 24)
+    }
+
     // MARK: - Featured Section
     private var featuredSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -131,15 +184,41 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Exhibition List
+    // MARK: - Exhibition List (整合原有最近浏览)
     private var exhibitionListSection: some View {
-        VStack(spacing: 12) {
-            ForEach(0..<5) { index in
-                ExhibitionCard(
-                    title: ["古代青铜器展", "明清瓷器精品", "丝绸之路文物", "中国古代书画", "玉器珍品"][index],
-                    museum: museums[index % museums.count],
-                    date: "2024.01.10 - 2024.03.20"
-                )
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("最近浏览")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color.primaryText)
+                Spacer()
+                if !recentExhibits.isEmpty {
+                    NavigationLink {
+                        ExhibitDetailView(exhibit: recentExhibits.first!)
+                    } label: {
+                        Image(systemName: "list.bullet")
+                            .foregroundStyle(Color.accentBrown)
+                    }
+                }
+            }
+            .padding(.horizontal, 24)
+
+            if recentExhibits.isEmpty {
+                Text("暂无记录")
+                    .font(.body)
+                    .foregroundStyle(Color.secondaryText)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 40)
+            } else {
+                ForEach(recentExhibits, id: \.id) { exhibit in
+                    NavigationLink {
+                        ExhibitDetailView(exhibit: exhibit)
+                    } label: {
+                        ExhibitRowView(exhibit: exhibit)
+                    }
+                    .accessibilityLabel(exhibit.title)
+                    .accessibilityHint("查看展品详情")
+                }
             }
         }
         .padding(.horizontal, 24)
@@ -191,6 +270,11 @@ struct HomeView: View {
         case .camera: return "拍照"
         case .profile: return "我的"
         }
+    }
+
+    // MARK: - Recent Exhibits (原有功能)
+    private var recentExhibits: [Exhibit] {
+        appState.recentExhibitIds.compactMap { appState.exhibit(by: $0) }
     }
 }
 
@@ -304,6 +388,40 @@ struct ExhibitionCard: View {
         .padding(14)
         .background(Color.cardBeige.opacity(0.4))
         .cornerRadius(16)
+    }
+}
+
+// MARK: - Exhibit Row View (原有功能)
+private struct ExhibitRowView: View {
+    let exhibit: Exhibit
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "square.stack")
+                .font(.title2)
+                .foregroundStyle(Color.accentBrown)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(exhibit.title)
+                    .font(.headline)
+                    .foregroundStyle(Color.primaryText)
+                Text(exhibit.shortIntro)
+                    .font(.subheadline)
+                    .foregroundStyle(Color.secondaryText)
+                    .lineLimit(2)
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.footnote)
+                .foregroundStyle(Color.secondaryText)
+                .accessibilityHidden(true)
+        }
+        .padding()
+        .background(.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
 }
 
