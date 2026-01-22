@@ -15,8 +15,8 @@ struct SignVideoPlayer: View {
                 .onAppear {
                     Haptics.lightImpact()
                 }
-        } else if !textForTranslation.isEmpty && Secrets.shared.signLanguageAppSecret != nil {
-            // 使用手语数字人服务进行实时翻译
+        } else if !textForTranslation.isEmpty {
+            // 使用手语数字人服务进行实时翻译（APPSecret 已在 HTML 中硬编码）
             SignLanguageAvatarView(textToTranslate: textForTranslation)
                 .onAppear {
                     Haptics.lightImpact()

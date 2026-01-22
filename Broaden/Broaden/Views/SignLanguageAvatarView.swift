@@ -89,13 +89,11 @@ struct SignLanguageWebView: UIViewRepresentable {
         // 存储 webView 引用以便后续使用
         context.coordinator.webView = webView
         
-        // 构建在线页面 URL（部署在 broaden.cc）
-        // URL 参数: text=翻译文本, secret=APPSecret
-        if let appSecret = Secrets.shared.signLanguageAppSecret,
-           let encodedText = textToTranslate.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-           let encodedSecret = appSecret.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-           let url = URL(string: "\(signLanguageAvatarBaseURL)?text=\(encodedText)&secret=\(encodedSecret)") {
-            print("[SignLanguage] 加载在线页面: \(signLanguageAvatarBaseURL)")
+        // 构建在线页面 URL（部署在 broaden.cc，APPSecret 已在 HTML 中硬编码）
+        // URL 参数: text=翻译文本
+        if let encodedText = textToTranslate.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+           let url = URL(string: "\(signLanguageAvatarBaseURL)?text=\(encodedText)") {
+            print("[SignLanguage] 加载在线页面: \(url.absoluteString)")
             webView.load(URLRequest(url: url))
         } else {
             print("[SignLanguage] 错误: 无法构建 URL")
