@@ -309,45 +309,64 @@ private struct HistoryCard: View {
     let imageName: String
     
     var body: some View {
-        HStack(spacing: 12) {
-            // 缩略图
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0xD2/255, green: 0x69/255, blue: 0x1E/255),
-                                Color(red: 0xB8/255, green: 0x55/255, blue: 0x18/255)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                
-                Image(systemName: "building.columns.fill")
-                    .font(.system(size: 20))
-                    .foregroundStyle(.white.opacity(0.7))
-            }
-            .frame(width: 70, height: 70)
-            
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .center, spacing: 0) {
+            // 左侧文本信息
+            VStack(alignment: .leading, spacing: 6) {
                 Text(title)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(Color.primaryText)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 
                 Text(location)
                     .font(.system(size: 12))
                     .foregroundStyle(Color.secondaryText)
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Spacer(minLength: 4)
                 
                 Text(date)
                     .font(.system(size: 11))
-                    .foregroundStyle(Color.secondaryText.opacity(0.8))
+                    .foregroundStyle(Color.secondaryText.opacity(0.7))
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .padding(.leading, 20)
+            .padding(.trailing, 12)
+            .padding(.vertical, 16)
             
-            Spacer()
+            Spacer(minLength: 0)
+            
+            // 右侧占位图
+            placeholderImage
+                .padding(.trailing, 20)
         }
-        .padding(12)
-        .modifier(CardBackgroundModifier())
+        .frame(height: 120)
+        .frame(maxWidth: .infinity)
+        .modifier(HistoryCardBackgroundModifier())
+    }
+    
+    @ViewBuilder
+    private var placeholderImage: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.85, green: 0.80, blue: 0.75),
+                            Color(red: 0.90, green: 0.85, blue: 0.80)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            
+            Image(systemName: "photo")
+                .font(.system(size: 24))
+                .foregroundStyle(Color.white.opacity(0.6))
+        }
+        .frame(width: 80, height: 80)
+        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
 }
 
@@ -355,54 +374,107 @@ private struct HistoryCard: View {
 
 private struct HistoryCardFromExhibit: View {
     let exhibit: Exhibit
+    @EnvironmentObject private var appState: AppState
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(alignment: .center, spacing: 0) {
+            // 左侧文本信息
+            VStack(alignment: .leading, spacing: 6) {
+                Text(exhibit.title)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.primaryText)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Text(exhibit.shortIntro)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.secondaryText)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Spacer(minLength: 4)
+                
+                Text(formattedDate)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.secondaryText.opacity(0.7))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.leading, 20)
+            .padding(.trailing, 12)
+            .padding(.vertical, 16)
+            
+            Spacer(minLength: 0)
+            
+            // 右侧文物抠图
+            artifactImage
+                .padding(.trailing, 20)
+        }
+        .frame(height: 120)
+        .frame(maxWidth: .infinity)
+        .modifier(HistoryCardBackgroundModifier())
+    }
+    
+    @ViewBuilder
+    private var artifactImage: some View {
+        if let url = appState.artifactPhotoURL(for: exhibit.id),
+           let uiImage = UIImage(contentsOfFile: url.path) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 80, height: 80)
+                .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
+        } else {
+            // 占位图
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(
                         LinearGradient(
                             colors: [
-                                Color(red: 0xD2/255, green: 0x69/255, blue: 0x1E/255),
-                                Color(red: 0xB8/255, green: 0x55/255, blue: 0x18/255)
+                                Color(red: 0.85, green: 0.80, blue: 0.75),
+                                Color(red: 0.90, green: 0.85, blue: 0.80)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
                 
-                Image(systemName: "building.columns.fill")
-                    .font(.system(size: 20))
-                    .foregroundStyle(.white.opacity(0.7))
+                Image(systemName: "photo")
+                    .font(.system(size: 24))
+                    .foregroundStyle(Color.white.opacity(0.6))
             }
-            .frame(width: 70, height: 70)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(exhibit.title)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color.primaryText)
-                    .lineLimit(1)
-                
-                Text(exhibit.shortIntro)
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.secondaryText)
-                    .lineLimit(1)
-                
-                Text(formattedDate)
-                    .font(.system(size: 11))
-                    .foregroundStyle(Color.secondaryText.opacity(0.8))
-            }
-            
-            Spacer()
+            .frame(width: 80, height: 80)
+            .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
         }
-        .padding(12)
-        .modifier(CardBackgroundModifier())
     }
     
     private var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy.M.dd"
         return formatter.string(from: Date())
+    }
+}
+
+// MARK: - History Card Background Modifier (iOS 26 Liquid Glass)
+
+private struct HistoryCardBackgroundModifier: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content
+                .glassEffect(in: .rect(cornerRadius: 20))
+        } else {
+            content
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(.ultraThinMaterial)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.white.opacity(0.7))
+                        )
+                        .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
+                )
+        }
     }
 }
 
