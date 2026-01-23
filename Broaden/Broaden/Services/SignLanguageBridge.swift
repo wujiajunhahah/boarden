@@ -26,12 +26,13 @@ class AvatarCoordinator: ObservableObject {
         guard !text.isEmpty else { return }
         
         // 清理文本，防止换行符和引号导致 JS 语法错误
+        // 注意：必须先转义反斜杠，否则后续添加的转义符会被再次转义
         let cleanText = text
+            .replacingOccurrences(of: "\\", with: "\\\\")  // 先转义反斜杠
             .replacingOccurrences(of: "\n", with: " ")
             .replacingOccurrences(of: "\r", with: " ")
             .replacingOccurrences(of: "'", with: "\\'")
             .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\\", with: "\\\\")
         
         currentText = text
         isPlaying = true
