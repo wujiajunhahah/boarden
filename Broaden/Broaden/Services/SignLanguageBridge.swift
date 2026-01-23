@@ -97,6 +97,37 @@ struct SignLanguageWebView: UIViewRepresentable {
         contentController.add(context.coordinator, name: "playbackComplete")
         contentController.add(context.coordinator, name: "debugLog")
         
+        // 注入 CSS 缩放脚本，让数字人占满容器
+        let zoomScript = WKUserScript(
+            source: """
+                var style = document.createElement('style');
+                style.innerHTML = `
+                    html, body {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: hidden !important;
+                        width: 100% !important;
+                        height: 100% !important;
+                    }
+                    body {
+                        display: flex !important;
+                        justify-content: center !important;
+                        align-items: center !important;
+                        transform: scale(1.3) !important;
+                        transform-origin: center center !important;
+                    }
+                    canvas, #avatar-container, .avatar-wrapper {
+                        max-width: 100% !important;
+                        max-height: 100% !important;
+                    }
+                `;
+                document.head.appendChild(style);
+                """,
+            injectionTime: .atDocumentEnd,
+            forMainFrameOnly: true
+        )
+        contentController.addUserScript(zoomScript)
+        
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = contentController
         configuration.allowsInlineMediaPlayback = true  // 允许网页内的流式播放
@@ -105,11 +136,12 @@ struct SignLanguageWebView: UIViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
         
-        // 设置 WebView 背景色（浅灰色，确保可见）
+        // 设置 WebView 背景色
         webView.isOpaque = true
-        webView.backgroundColor = UIColor.systemGray6
-        webView.scrollView.backgroundColor = UIColor.systemGray6
+        webView.backgroundColor = UIColor.white
+        webView.scrollView.backgroundColor = UIColor.white
         webView.scrollView.isScrollEnabled = false
+        webView.scrollView.bounces = false
         
         // 启用调试日志
         #if DEBUG

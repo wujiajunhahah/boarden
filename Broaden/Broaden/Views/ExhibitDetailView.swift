@@ -21,9 +21,11 @@ struct ArtifactSubjectView: View {
             ZStack {
                 if let lifted = liftedImage {
                     // 显示提取后的透明背景图片（"撕下"效果）
+                    // 顺时针旋转90度并放大填充
                     Image(uiImage: lifted)
                         .resizable()
-                        .scaledToFit()
+                        .scaledToFill()
+                        .rotationEffect(.degrees(90))
                         .frame(width: geometry.size.width, height: geometry.size.height)
                         .clipped()
                         .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
@@ -34,9 +36,11 @@ struct ArtifactSubjectView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     // 显示原始图片（降级方案）
+                    // 顺时针旋转90度并放大填充
                     Image(uiImage: originalImage)
                         .resizable()
-                        .scaledToFit()
+                        .scaledToFill()
+                        .rotationEffect(.degrees(90))
                         .frame(width: geometry.size.width, height: geometry.size.height)
                         .clipped()
                 }
@@ -160,19 +164,23 @@ struct ExhibitDetailView: View {
                         Text("文物主体")
                             .font(.headline)
 
-                        // 使用主体提取视图，防止溢出并自动适配布局
+                        // 使用主体提取视图，放大填充整个区域
                         Group {
                             if #available(iOS 16.0, *) {
                                 ArtifactSubjectView(originalImage: image)
                                     .frame(maxWidth: .infinity)
-                                    .aspectRatio(1, contentMode: .fit)
+                                    .frame(height: UIScreen.main.bounds.width * 1.2) // 更大的高度
                                     .background(Color.white.opacity(0.5))
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
                             } else {
                                 // iOS 16 以下降级方案
                                 Image(uiImage: image)
                                     .resizable()
-                                    .scaledToFit()
+                                    .scaledToFill()
+                                    .rotationEffect(.degrees(90))
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: UIScreen.main.bounds.width * 1.2)
+                                    .clipped()
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
                             }
                         }
@@ -181,12 +189,14 @@ struct ExhibitDetailView: View {
                 }
 
                 // 手语视频 - 直接加载，不做延迟
+                // 放大 WebView 使数字人占满显示区域（16:9 宽高比，更紧凑）
                 SignVideoPlayer(
                     filename: exhibit.media.signVideoFilename,
                     textForTranslation: viewModel.generatedEasyText ?? exhibit.easyText,
                     coordinator: avatarCoordinator
                 )
-                    .frame(height: 220)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: UIScreen.main.bounds.width * 1.1) // 固定高度，略大于宽度
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .accessibilityLabel("手语解说视频")
                     .accessibilityHint("展品的手语解说")
