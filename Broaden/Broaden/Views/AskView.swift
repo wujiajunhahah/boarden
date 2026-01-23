@@ -3,6 +3,8 @@ import SwiftUI
 struct AskView: View {
     let exhibit: Exhibit
     @ObservedObject var viewModel: AskViewModel
+    /// 手语数字人协调器 - 用于发送手语脚本实现自动联动
+    @ObservedObject var avatarCoordinator: AvatarCoordinator
 
     @State private var inputText = ""
 
@@ -54,7 +56,7 @@ struct AskView: View {
                     if message.isUser {
                         ChatBubble(text: message.text, isUser: true)
                     } else if let response = message.response {
-                        AnswerCardView(response: response)
+                        AnswerCardView(response: response, avatarCoordinator: avatarCoordinator)
                     }
                 }
                 if viewModel.isLoading {
@@ -101,6 +103,8 @@ private struct ChatBubble: View {
 
 private struct AnswerCardView: View {
     let response: AskResponse
+    /// 手语数字人协调器 - 用于发送手语脚本
+    @ObservedObject var avatarCoordinator: AvatarCoordinator
     @State private var selectedLayer = 0
 
     var body: some View {
@@ -113,6 +117,12 @@ private struct AnswerCardView: View {
             .pickerStyle(.segmented)
             .accessibilityLabel("回答层级")
             .accessibilityHint("切换简版、详版或手语脚本")
+            .onChange(of: selectedLayer) { _, newValue in
+                // 当用户切换到手语脚本时，自动发送到数字人进行翻译
+                if newValue == 2 && !response.signScript.isEmpty && avatarCoordinator.isLoaded {
+                    avatarCoordinator.sendText(response.signScript)
+                }
+            }
 
             Group {
                 switch selectedLayer {
@@ -126,8 +136,22 @@ private struct AnswerCardView: View {
                             .foregroundStyle(.secondary)
                     }
                 case 2:
-                    Text(response.signScript)
-                        .font(.body)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(response.signScript)
+                            .font(.body)
+                        
+                        // 手语脚本状态指示
+                        if avatarCoordinator.isLoaded {
+                            HStack(spacing: 4) {
+                                Circle()
+                                    .fill(.green)
+                                    .frame(width: 8, height: 8)
+                                Text("数字人已就绪")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
                 default:
                     Text(response.answerSimple)
                         .font(.body)
@@ -141,6 +165,12 @@ private struct AnswerCardView: View {
         .padding(12)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
         .accessibilityLabel("回答")
+        .onAppear {
+            // 当新回答出现时，如果已经选中手语脚本标签，自动发送
+            if selectedLayer == 2 && !response.signScript.isEmpty && avatarCoordinator.isLoaded {
+                avatarCoordinator.sendText(response.signScript)
+            }
+        }
     }
 
     private var confidenceText: String {
