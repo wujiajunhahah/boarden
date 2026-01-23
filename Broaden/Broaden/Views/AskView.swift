@@ -58,16 +58,19 @@ struct AskView: View {
             }
 
             VStack(spacing: 12) {
-                ForEach(viewModel.messages) { message in
+                // 加载中提示（显示在最上方）
+                if viewModel.isLoading {
+                    ProgressView("正在生成答复")
+                        .accessibilityLabel("正在生成答复")
+                }
+                
+                // 对话历史（新的在上，旧的在下）
+                ForEach(viewModel.messages.reversed()) { message in
                     if message.isUser {
                         ChatBubble(text: message.text, isUser: true)
                     } else if let response = message.response {
                         AnswerCardView(response: response, avatarCoordinator: avatarCoordinator)
                     }
-                }
-                if viewModel.isLoading {
-                    ProgressView("正在生成答复")
-                        .accessibilityLabel("正在生成答复")
                 }
             }
         }
