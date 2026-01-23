@@ -106,9 +106,9 @@ struct SettingsView: View {
             // 左侧内容
             VStack(alignment: .leading, spacing: 0) {
                 // 头像
-                Image("app-logo")
+                Image("avatar")
                     .resizable()
-                    .scaledToFit()
+                    .scaledToFill()
                     .frame(width: 50, height: 50)
                     .clipShape(Circle())
                     .background(Circle().fill(Color.white))
