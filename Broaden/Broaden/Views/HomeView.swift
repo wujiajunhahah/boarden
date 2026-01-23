@@ -1,4 +1,7 @@
 import SwiftUI
+import Vision
+import CoreImage
+import CoreImage.CIFilterBuiltins
 
 // MARK: - Design Tokens
 extension Color {
@@ -400,15 +403,15 @@ private struct HistoryCardFromExhibit: View {
                     .foregroundStyle(Color.secondaryText.opacity(0.7))
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .frame(maxWidth: .infinity)
             .padding(.leading, 20)
-            .padding(.trailing, 12)
+            .padding(.trailing, 8)
             .padding(.vertical, 16)
             
-            Spacer(minLength: 0)
-            
-            // 右侧文物抠图
+            // 右侧文物抠图 - 占满高度
             artifactImage
-                .padding(.trailing, 20)
+                .frame(width: 120, height: 120)
+                .clipped()
         }
         .frame(height: 120)
         .frame(maxWidth: .infinity)
@@ -419,32 +422,21 @@ private struct HistoryCardFromExhibit: View {
     private var artifactImage: some View {
         if let url = appState.artifactPhotoURL(for: exhibit.id),
            let uiImage = UIImage(contentsOfFile: url.path) {
-            Image(uiImage: uiImage)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 80, height: 80)
-                .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
+            // 使用主体提取视图显示抠图
+            if #available(iOS 17.0, *) {
+                HistoryCardArtifactImage(originalImage: uiImage)
+            } else {
+                // iOS 17 以下显示原图
+                HistoryCardArtifactImageFallback(originalImage: uiImage)
+            }
         } else {
             // 占位图
             ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0.85, green: 0.80, blue: 0.75),
-                                Color(red: 0.90, green: 0.85, blue: 0.80)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                
-                Image(systemName: "photo")
-                    .font(.system(size: 24))
-                    .foregroundStyle(Color.white.opacity(0.6))
+                Color.clear
+                Image(systemName: "photo.artframe")
+                    .font(.system(size: 32))
+                    .foregroundStyle(Color.secondaryText.opacity(0.3))
             }
-            .frame(width: 80, height: 80)
-            .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
         }
     }
     
@@ -452,6 +444,92 @@ private struct HistoryCardFromExhibit: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy.M.dd"
         return formatter.string(from: Date())
+    }
+}
+
+// MARK: - History Card Artifact Image (Subject Lifting using Vision)
+
+@available(iOS 17.0, *)
+private struct HistoryCardArtifactImage: View {
+    let originalImage: UIImage
+    @State private var liftedImage: UIImage?
+    @State private var isProcessing = false
+    
+    var body: some View {
+        GeometryReader { geometry in
+            Group {
+                if let lifted = liftedImage {
+                    Image(uiImage: lifted)
+                        .resizable()
+                        .scaledToFit()
+                        .rotationEffect(.degrees(90))
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)
+                } else if isProcessing {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    Image(uiImage: originalImage)
+                        .resizable()
+                        .scaledToFit()
+                        .rotationEffect(.degrees(90))
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                }
+            }
+        }
+        .task {
+            await extractSubject()
+        }
+    }
+    
+    private func extractSubject() async {
+        isProcessing = true
+        defer { isProcessing = false }
+        
+        guard let cgImage = originalImage.cgImage else { return }
+        
+        do {
+            // 使用 Vision 框架生成前景蒙版
+            let request = VNGenerateForegroundInstanceMaskRequest()
+            let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+            try handler.perform([request])
+            
+            guard let result = request.results?.first else { return }
+            
+            // 生成蒙版图像
+            let maskPixelBuffer = try result.generateScaledMaskForImage(forInstances: result.allInstances, from: handler)
+            
+            // 应用蒙版到原图
+            let ciContext = CIContext()
+            let ciImage = CIImage(cgImage: cgImage)
+            let maskCIImage = CIImage(cvPixelBuffer: maskPixelBuffer)
+            
+            // 使用 CIBlendWithMask 滤镜
+            let filter = CIFilter.blendWithMask()
+            filter.inputImage = ciImage
+            filter.maskImage = maskCIImage
+            filter.backgroundImage = CIImage.empty()
+            
+            guard let outputImage = filter.outputImage,
+                  let outputCGImage = ciContext.createCGImage(outputImage, from: ciImage.extent) else { return }
+            
+            liftedImage = UIImage(cgImage: outputCGImage)
+        } catch {
+            print("[HistoryCardArtifactImage] 提取失败: \(error.localizedDescription)")
+        }
+    }
+}
+
+// iOS 16 及以下的降级版本
+private struct HistoryCardArtifactImageFallback: View {
+    let originalImage: UIImage
+    
+    var body: some View {
+        Image(uiImage: originalImage)
+            .resizable()
+            .scaledToFit()
+            .rotationEffect(.degrees(90))
+            .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
     }
 }
 
