@@ -83,22 +83,26 @@ final class AppState: ObservableObject {
     // MARK: - iCloud 数据加载
     
     private func loadFromiCloud() {
-        // 加载最近浏览 - 合并 iCloud 和本地数据，防止同步延迟导致数据丢失
-        var mergedRecents: [String] = []
+        // 加载最近浏览 - 合并内存、本地和 iCloud 数据，防止同步延迟导致数据丢失
+        // 优先级：内存（最新）> 本地 > iCloud
+        var mergedRecents: [String] = recentExhibitIds  // 1. 先保留当前内存中的数据
+        print("[AppState] 当前内存中有 \(mergedRecents.count) 个最近浏览")
         
-        // 1. 先加载本地数据
+        // 2. 加载本地数据并合并
         if let localData = UserDefaults.standard.data(forKey: recentsKey),
            let localIds = try? JSONDecoder().decode([String].self, from: localData) {
-            mergedRecents = localIds
             print("[AppState] 从本地加载了 \(localIds.count) 个最近浏览")
+            for id in localIds {
+                if !mergedRecents.contains(id) {
+                    mergedRecents.append(id)
+                }
+            }
         }
         
-        // 2. 加载 iCloud 数据并合并
+        // 3. 加载 iCloud 数据并合并
         if let iCloudData = iCloudStore.data(forKey: recentsKey),
            let iCloudIds = try? JSONDecoder().decode([String].self, from: iCloudData) {
             print("[AppState] 从 iCloud 加载了 \(iCloudIds.count) 个最近浏览")
-            
-            // 合并：保留本地数据的顺序，追加 iCloud 中有但本地没有的记录
             for id in iCloudIds {
                 if !mergedRecents.contains(id) {
                     mergedRecents.append(id)
@@ -106,7 +110,7 @@ final class AppState: ObservableObject {
             }
         }
         
-        // 3. 限制最多 10 条
+        // 4. 限制最多 10 条
         if mergedRecents.count > 10 {
             mergedRecents = Array(mergedRecents.prefix(10))
         }
