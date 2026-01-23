@@ -12,13 +12,22 @@ extension Color {
 
 struct HomeView: View {
     @EnvironmentObject private var appState: AppState
-    @Binding var selectedTab: AppTab
     @State private var selectedMuseum: String? = nil
 
     private let museums = ["国博", "北大博物馆", "故宫博物院", "圆明园"]
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack {
+            // 背景图片
+            if let bgUrl = Bundle.main.url(forResource: "home-background", withExtension: "png"),
+               let bgData = try? Data(contentsOf: bgUrl),
+               let bgImage = UIImage(data: bgData) {
+                Image(uiImage: bgImage)
+                    .resizable()
+                    .scaledToFill()
+                    .ignoresSafeArea()
+            }
+
             ScrollView {
                 VStack(spacing: 0) {
                     // Header Section
@@ -42,56 +51,35 @@ struct HomeView: View {
                         .padding(.bottom, 100)
                 }
             }
-            .background(Color.primaryBackground)
-
-            // Bottom Navigation
-            bottomNavigationBar
         }
         .navigationBarHidden(true)
     }
 
     // MARK: - Header Section
     private var headerSection: some View {
-        ZStack(alignment: .topLeading) {
-            // Background decoration
-            VStack {
-                Spacer()
-                HStack {
-                    starShape
-                        .fill(Color.accentGreen.opacity(0.3))
-                        .frame(width: 120, height: 120)
-                        .offset(x: -20, y: 40)
-                    Spacer()
-                    starShape
-                        .fill(Color(red: 0xFF/255, green: 0xE8/255, blue: 0x92/255).opacity(0.4))
-                        .frame(width: 80, height: 80)
-                        .offset(x: 20, y: -30)
-                }
+        VStack(alignment: .leading, spacing: 4) {
+            // Location
+            HStack(spacing: 4) {
+                Image(systemName: "mappin.circle.fill")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.white.opacity(0.8))
+                Text("Beijing")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(Color.white.opacity(0.8))
             }
 
-            VStack(alignment: .leading, spacing: 4) {
-                // Location
-                HStack(spacing: 4) {
-                    Image(systemName: "mappin.circle.fill")
-                        .font(.system(size: 14))
-                        .foregroundStyle(Color.secondaryText)
-                    Text("Beijing")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.secondaryText)
-                }
-                .padding(.top, 60)
+            // Greeting
+            Text("Hi，")
+                .font(.system(size: 28, weight: .bold))
+                .foregroundStyle(.white)
 
-                // Greeting
-                Text("Hi，")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundStyle(Color.primaryText)
-
-                Text("平花选手")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundStyle(Color.primaryText)
-            }
-            .padding(.horizontal, 24)
+            Text("平花选手")
+                .font(.system(size: 28, weight: .bold))
+                .foregroundStyle(.white)
         }
+        .padding(.horizontal, 24)
+        .padding(.top, 60)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     // MARK: - Quick Actions (原有功能)
@@ -215,54 +203,6 @@ struct HomeView: View {
                 }
                 .padding(.horizontal, 24)
             }
-        }
-    }
-
-    // MARK: - Bottom Navigation
-    private var bottomNavigationBar: some View {
-        HStack(spacing: 0) {
-            ForEach(AppTab.allCases, id: \.self) { tab in
-                Button {
-                    withAnimation(.spring(response: 0.3)) {
-                        selectedTab = tab
-                    }
-                } label: {
-                    VStack(spacing: 4) {
-                        Image(systemName: iconName(for: tab))
-                            .font(.system(size: 22))
-                            .foregroundStyle(selectedTab == tab ? Color.accentBrown : Color.secondaryText)
-
-                        Text(tabTitle(for: tab))
-                            .font(.system(size: 11))
-                            .foregroundStyle(selectedTab == tab ? Color.accentBrown : Color.secondaryText)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-            }
-        }
-        .padding(.top, 12)
-        .padding(.bottom, 28)
-        .background(
-            RoundedRectangle(cornerRadius: 33.5)
-                .fill(.white)
-                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: -2)
-        )
-        .padding(.horizontal, 36)
-    }
-
-    private func iconName(for tab: AppTab) -> String {
-        switch tab {
-        case .home: return "message.fill"
-        case .camera: return "camera.fill"
-        case .profile: return "person.fill"
-        }
-    }
-
-    private func tabTitle(for tab: AppTab) -> String {
-        switch tab {
-        case .home: return "消息"
-        case .camera: return "拍照"
-        case .profile: return "我的"
         }
     }
 
@@ -449,6 +389,6 @@ private struct HistoryRowView: View {
 
 // MARK: - Preview
 #Preview {
-    HomeView(selectedTab: .constant(.home))
+    HomeView()
         .environmentObject(AppState())
 }

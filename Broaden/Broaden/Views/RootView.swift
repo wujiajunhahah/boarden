@@ -20,7 +20,7 @@ struct RootView: View {
                 }
 
                 TabView(selection: $selectedTab) {
-                    HomeView(selectedTab: $selectedTab)
+                    HomeView()
                         .tabItem {
                             Label("首页", systemImage: "house.fill")
                         }
