@@ -285,7 +285,22 @@ struct ExhibitDetailView: View {
             }
             .padding(.top, 6)
             
-            // 详细按钮
+            // 描述文字
+            if !detailTextContent.isEmpty {
+                Text(detailTextContent)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.primary)
+                    .lineSpacing(4)
+                    .padding(.top, 8)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("暂无详细介绍")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 8)
+            }
+            
+            // 详细按钮（展开易读版和术语卡片）
             Button {
                 viewModel.showDetailText.toggle()
             } label: {
@@ -302,22 +317,7 @@ struct ExhibitDetailView: View {
             }
             .padding(.top, 6)
             
-            // 描述文字
-            if !detailTextContent.isEmpty {
-                Text(detailTextContent)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.primary)
-                    .lineSpacing(4)
-                    .padding(.top, 8)
-                    .fixedSize(horizontal: false, vertical: true)
-            } else {
-                Text("暂无详细介绍")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 8)
-            }
-            
-            // 展开的详细信息
+            // 展开的详细信息（易读版、术语卡片）
             if viewModel.showDetailText {
                 expandedDetailSection
             }
