@@ -41,9 +41,18 @@ struct ZhipuNarrationService: ExhibitNarrationServicing {
 
     private func extract(_ text: String, keyword: String) -> String? {
         guard let range = text.range(of: keyword) else { return nil }
-        let after = text[range.upperBound...]
-        let lines = after.split(separator: "\n").map { String($0).trimmingCharacters(in: .whitespaces) }
-        guard let firstLine = lines.first, !firstLine.isEmpty else { return nil }
-        return firstLine
+        var after = String(text[range.upperBound...])
+        
+        // 移除开头的冒号和空白
+        after = after.trimmingCharacters(in: CharacterSet(charactersIn: "：:").union(.whitespaces))
+        
+        // 如果有"详细版"关键字，截取到它之前
+        if keyword == "易读版", let detailRange = after.range(of: "详细版") {
+            after = String(after[..<detailRange.lowerBound])
+        }
+        
+        // 清理并返回
+        let result = after.trimmingCharacters(in: .whitespacesAndNewlines)
+        return result.isEmpty ? nil : result
     }
 }
