@@ -300,12 +300,19 @@ struct ExhibitDetailView: View {
             .padding(.top, 6)
             
             // 描述文字
-            Text(viewModel.generatedDetailText ?? exhibit.detailText)
-                .font(.system(size: 12))
-                .foregroundStyle(.primary)
-                .lineSpacing(4)
-                .padding(.top, 8)
-                .fixedSize(horizontal: false, vertical: true)
+            if !detailTextContent.isEmpty {
+                Text(detailTextContent)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.primary)
+                    .lineSpacing(4)
+                    .padding(.top, 8)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("暂无详细介绍")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 8)
+            }
             
             // 展开的详细信息
             if viewModel.showDetailText {
@@ -325,10 +332,16 @@ struct ExhibitDetailView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("易读版")
                     .font(.system(size: 12, weight: .semibold))
-                Text(viewModel.generatedEasyText ?? exhibit.easyText)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                if !easyTextContent.isEmpty {
+                    Text(easyTextContent)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text("暂无易读版内容")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.tertiary)
+                }
             }
             
             // 术语卡片
@@ -385,6 +398,26 @@ struct ExhibitDetailView: View {
 
     private var captionSize: CaptionSize {
         CaptionSize(rawValue: captionSizeRaw) ?? .medium
+    }
+    
+    /// 清理后的详细版文本
+    private var detailTextContent: String {
+        let text = viewModel.generatedDetailText ?? exhibit.detailText
+        return cleanTextContent(text)
+    }
+    
+    /// 清理后的易读版文本
+    private var easyTextContent: String {
+        let text = viewModel.generatedEasyText ?? exhibit.easyText
+        return cleanTextContent(text)
+    }
+    
+    /// 清理文本内容，移除只有标点符号或空白的无效内容
+    private func cleanTextContent(_ text: String) -> String {
+        let cleaned = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        // 如果只有标点符号（如 ":" 或 "："），视为空
+        let punctuationOnly = cleaned.allSatisfy { $0.isPunctuation || $0.isWhitespace }
+        return punctuationOnly ? "" : cleaned
     }
 }
 
