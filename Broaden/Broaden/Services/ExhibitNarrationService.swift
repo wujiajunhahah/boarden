@@ -9,6 +9,14 @@ protocol ExhibitNarrationServicing: Sendable {
     func generate(title: String) async throws -> ExhibitNarration?
 }
 
+/// 本地回退服务（无 API 调用）
+struct ExhibitNarrationService: ExhibitNarrationServicing {
+    func generate(title: String) async throws -> ExhibitNarration? {
+        // 返回 nil，表示不生成解说
+        return nil
+    }
+}
+
 struct DeepSeekNarrationService: ExhibitNarrationServicing {
     private let service: DeepSeekServicing = QwenService()
 

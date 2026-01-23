@@ -12,9 +12,10 @@ final class AskViewModel: ObservableObject {
     init(askService: AskServicing? = nil) {
         if let askService {
             self.askService = askService
+        } else if Secrets.shared.isValidZhipuKey {
+            self.askService = ZhipuAskService()
         } else {
-            // 优先使用通义千问
-            self.askService = QwenAskService()
+            self.askService = MockAskService()
         }
     }
 

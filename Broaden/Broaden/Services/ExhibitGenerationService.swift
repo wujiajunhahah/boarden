@@ -7,25 +7,28 @@ protocol ExhibitGenerating: Sendable {
 enum ExhibitGenerationError: Error, LocalizedError, Sendable {
     case missingAPIKey
     case invalidResponse
+    case ocrEmpty
 
     var errorDescription: String? {
         switch self {
         case .missingAPIKey:
-            return "未配置 DeepSeek API Key"
+            return "未配置智谱 API Key"
         case .invalidResponse:
             return "返回格式无效，请稍后重试"
+        case .ocrEmpty:
+            return "未能识别到文字，请重新拍摄"
         }
     }
 }
 
 struct ExhibitGenerationService: ExhibitGenerating {
-    private let service: DeepSeekServicing = QwenService()
+    private let service: ZhipuChatServicing = ZhipuChatService()
 
     func generate(from ocrText: String) async throws -> Exhibit? {
         let cleaned = ocrText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !cleaned.isEmpty else { return nil }
+        guard !cleaned.isEmpty else { throw ExhibitGenerationError.ocrEmpty }
 
-        if Secrets.shared.deepseekApiKey == nil {
+        guard Secrets.shared.zhipuApiKey != nil else {
             throw ExhibitGenerationError.missingAPIKey
         }
 
@@ -39,63 +42,29 @@ struct ExhibitGenerationService: ExhibitGenerating {
 
         let user = "识别到的展牌文字：\n\(cleaned)\n请生成展品 JSON。"
 
-        if let response = try await service.generate(system: system, user: user),
-           let jsonData = extractJSONData(from: response.text),
-           let exhibit = try? JSONDecoder().decode(Exhibit.self, from: jsonData) {
-            return exhibit
+        guard let response = try await service.generate(system: system, user: user) else {
+            throw ExhibitGenerationError.invalidResponse
         }
 
-        throw ExhibitGenerationError.invalidResponse
+        guard let jsonData = extractJSONData(from: response),
+              let exhibit = try? JSONDecoder().decode(Exhibit.self, from: jsonData) else {
+            print("[ExhibitGeneration] JSON 解析失败，响应: \(response)")
+            throw ExhibitGenerationError.invalidResponse
+        }
+
+        return exhibit
     }
 
     private func extractJSONData(from text: String) -> Data? {
+        // 先尝试直接解析
         if let data = text.data(using: .utf8),
            (try? JSONSerialization.jsonObject(with: data)) != nil {
             return data
         }
-        // Try to extract JSON object substring
+        // 尝试提取 JSON 对象
         guard let start = text.firstIndex(of: "{") else { return nil }
         guard let end = text.lastIndex(of: "}") else { return nil }
         let substring = String(text[start...end])
         return substring.data(using: .utf8)
-    }
-
-    private func fallbackExhibit(from text: String) -> Exhibit {
-        let title = extractTitle(from: text)
-        let shortIntro = extractShortIntro(from: text)
-        let easy = extractEasyText(from: text)
-        let detail = text
-
-        return Exhibit(
-            id: "EXH-LLM-\(UUID().uuidString.prefix(8))",
-            title: title,
-            shortIntro: shortIntro,
-            easyText: easy,
-            detailText: detail,
-            glossary: [],
-            media: ExhibitMedia(signVideoFilename: "sign_demo.mp4", captionsVttOrSrtFilename: "captions_demo.srt"),
-            references: [ReferenceSnippet(refId: "REF-01", snippet: shortIntro)]
-        )
-    }
-
-    private func extractTitle(from text: String) -> String {
-        let lines = text.split(separator: "\n").map { String($0).trimmingCharacters(in: .whitespaces) }
-        if let first = lines.first(where: { !$0.isEmpty }) {
-            return String(first.prefix(16))
-        }
-        return String(text.prefix(12))
-    }
-
-    private func extractShortIntro(from text: String) -> String {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let idx = trimmed.firstIndex(where: { $0 == "。" || $0 == "；" || $0 == "." }) {
-            return String(trimmed[..<idx])
-        }
-        return String(trimmed.prefix(40))
-    }
-
-    private func extractEasyText(from text: String) -> String {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        return String(trimmed.prefix(120))
     }
 }

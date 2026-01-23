@@ -8,42 +8,70 @@ enum AppTab: CaseIterable {
 
 struct RootView: View {
     @State private var selectedTab: AppTab = .home
+    @EnvironmentObject private var appState: AppState
 
     var body: some View {
-        ZStack {
-            switch selectedTab {
-            case .home:
-                NavigationStack {
+        NavigationStack {
+            ZStack {
+                // 背景图片（相机界面除外）
+                if selectedTab != .camera {
+                    backgroundView
+                        .ignoresSafeArea()
+                }
+
+                TabView(selection: $selectedTab) {
                     HomeView(selectedTab: $selectedTab)
-                }
-            case .camera:
-                NavigationStack {
+                        .tabItem {
+                            Label("首页", systemImage: "house.fill")
+                        }
+                        .tag(AppTab.home)
+
                     CameraGuideView()
+                        .tabItem {
+                            Label("相机", systemImage: "camera.fill")
+                        }
+                        .tag(AppTab.camera)
+
+                    SettingsView()
+                        .tabItem {
+                            Label("设置", systemImage: "gearshape.fill")
+                        }
+                        .tag(AppTab.profile)
                 }
-            case .profile:
-                NavigationStack {
-                    ProfileView()
+                .navigationDestination(item: $appState.pendingExhibitForDetail) { (exhibit: Exhibit) in
+                    ExhibitDetailView(exhibit: exhibit)
                 }
             }
         }
     }
-}
 
-// MARK: - Profile View (Placeholder)
-struct ProfileView: View {
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                Text("我的")
-                    .font(.title.bold())
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-
-                Text("用户资料页面即将推出")
-                    .foregroundStyle(.secondary)
+    /// 背景图片视图
+    private var backgroundView: some View {
+        Group {
+            if let backgroundImage = UIImage(named: "background-pattern") {
+                Image(uiImage: backgroundImage)
+                    .resizable()
+                    .scaledToFill()
+                    .opacity(0.08)
+            } else if let backgroundImage = UIImage(named: "AppIcon-1024") {
+                // 使用 AppIcon 作为备用背景
+                Image(uiImage: backgroundImage)
+                    .resizable()
+                    .scaledToFill()
+                    .opacity(0.05)
+                    .blur(radius: 20)
+            } else {
+                // 渐变背景作为默认
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.95, green: 0.95, blue: 0.97),
+                        Color(red: 0.98, green: 0.98, blue: 1.0)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
             }
         }
-        .navigationTitle("")
-        .navigationBarHidden(true)
+        .ignoresSafeArea()
     }
 }

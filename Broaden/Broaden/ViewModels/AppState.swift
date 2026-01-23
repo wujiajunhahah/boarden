@@ -6,6 +6,9 @@ final class AppState: ObservableObject {
     @Published var recentExhibitIds: [String] = []
     @Published private(set) var artifactPhotoURLs: [String: URL] = [:]
     @Published private(set) var exhibitLocations: [String: LocationRecord] = [:]
+    
+    /// 待跳转的展品详情（用于导航）
+    @Published var pendingExhibitForDetail: Exhibit?
 
     private let exhibitService: ExhibitProviding
     private let recentsKey = "recentExhibitIds"

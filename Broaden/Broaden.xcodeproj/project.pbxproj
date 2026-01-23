@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01A1A1030000000200000002 /* SignLanguageBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A1020000000200000002 /* SignLanguageBridge.swift */; };
 		01A1A1010000000200000002 /* SubjectMaskingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A1000000000200000002 /* SubjectMaskingService.swift */; };
 		01A1A0FF0000000100000002 /* LocationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0FD0000000100000002 /* LocationModels.swift */; };
 		01A1A0FE0000000100000002 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0FC0000000100000002 /* LocationService.swift */; };
@@ -44,10 +45,11 @@
 		01A1A0F60000000100000002 /* Secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = 01A1A0F50000000100000002 /* Secrets.plist */; };
 		01A1A0F80000000100000002 /* ExhibitGenerationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0F70000000100000002 /* ExhibitGenerationService.swift */; };
 		01A1A0FA0000000100000002 /* TextProcessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0F90000000100000002 /* TextProcessing.swift */; };
-		01A1A0FC0000000100000003 /* SignLanguageBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0FB0000000100000003 /* SignLanguageBridge.swift */; };
+		01A1A0FD0000000200000001 /* ZhipuService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0FC0000000200000001 /* ZhipuService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		01A1A1020000000200000002 /* SignLanguageBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignLanguageBridge.swift; sourceTree = "<group>"; };
 		01A1A1000000000200000002 /* SubjectMaskingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectMaskingService.swift; sourceTree = "<group>"; };
 		01A1A0FD0000000100000002 /* LocationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationModels.swift; sourceTree = "<group>"; };
 		01A1A0FC0000000100000002 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
@@ -87,7 +89,7 @@
 		01A1A0F50000000100000002 /* Secrets.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Secrets.plist; sourceTree = "<group>"; };
 		01A1A0F70000000100000002 /* ExhibitGenerationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExhibitGenerationService.swift; sourceTree = "<group>"; };
 		01A1A0F90000000100000002 /* TextProcessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextProcessing.swift; sourceTree = "<group>"; };
-		01A1A0FB0000000100000003 /* SignLanguageBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignLanguageBridge.swift; sourceTree = "<group>"; };
+		01A1A0FC0000000200000001 /* ZhipuService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZhipuService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -143,6 +145,7 @@
 		01A1A0D10000000100000002 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				01A1A1020000000200000002 /* SignLanguageBridge.swift */,
 				01A1A1000000000200000002 /* SubjectMaskingService.swift */,
 				01A1A0FC0000000100000002 /* LocationService.swift */,
 				01A1A0F90000000100000002 /* TextProcessing.swift */,
@@ -151,6 +154,7 @@
 				01A1A0D70000000100000002 /* DeepSeekService.swift */,
 				01A1A0D80000000100000002 /* ExhibitNarrationService.swift */,
 				01A1A0F70000000100000002 /* ExhibitGenerationService.swift */,
+				01A1A0FC0000000200000001 /* ZhipuService.swift */,
 				01A1A0AE0000000100000001 /* ExhibitService.swift */,
 				01A1A0AF0000000100000001 /* AskService.swift */,
 				01A1A0B00000000100000001 /* CaptionService.swift */,
@@ -158,7 +162,6 @@
 				01A1A0B20000000100000002 /* ExhibitMatchService.swift */,
 				01A1A0B30000000100000002 /* AnswerCache.swift */,
 				01A1A0B40000000100000002 /* CameraSessionController.swift */,
-				01A1A0FB0000000100000003 /* SignLanguageBridge.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -296,6 +299,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01A1A1030000000200000002 /* SignLanguageBridge.swift in Sources */,
 				01A1A1010000000200000002 /* SubjectMaskingService.swift in Sources */,
 				01A1A0FF0000000100000002 /* LocationModels.swift in Sources */,
 				01A1A0FE0000000100000002 /* LocationService.swift in Sources */,
@@ -305,6 +309,7 @@
 				01A1A0E70000000100000002 /* DeepSeekService.swift in Sources */,
 				01A1A0E80000000100000002 /* ExhibitNarrationService.swift in Sources */,
 				01A1A0F80000000100000002 /* ExhibitGenerationService.swift in Sources */,
+				01A1A0FD0000000200000001 /* ZhipuService.swift in Sources */,
 				01A1A0B10000000100000001 /* BroadenApp.swift in Sources */,
 				01A1A0B20000000100000001 /* RootView.swift in Sources */,
 				01A1A0B30000000100000001 /* HomeView.swift in Sources */,
@@ -315,7 +320,6 @@
 				01A1A0B80000000100000001 /* AskView.swift in Sources */,
 				01A1A0B90000000100000001 /* FaceToFaceView.swift in Sources */,
 				01A1A0BA0000000100000001 /* SettingsView.swift in Sources */,
-				01A1A0FC0000000100000003 /* SignLanguageBridge.swift in Sources */,
 				01A1A0BB0000000100000001 /* Exhibit.swift in Sources */,
 				01A1A0BC0000000100000001 /* AskModels.swift in Sources */,
 				01A1A0BD0000000100000001 /* SettingsModels.swift in Sources */,
