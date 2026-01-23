@@ -14,6 +14,7 @@ struct CameraGuideView: View {
 
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var isGalleryPresented = false
+    @State private var showSettings = false
 
     var body: some View {
         ZStack {
@@ -24,17 +25,25 @@ struct CameraGuideView: View {
                 .accessibilityLabel("相机预览")
                 .accessibilityHint("对准展品或展牌")
 
-            // 相机控制
+            // 扫描框
+            scanFrame
+            
+            // 顶部导航栏
+            VStack {
+                topBar
+                Spacer()
+            }
+            
+            // 底部控制区
             VStack {
                 Spacer()
                 statusOverlay
-                Spacer()
+                    .padding(.bottom, 20)
                 cameraControls
             }
-            .padding(.bottom, 34)
-            .padding(.top, 60)
         }
         .navigationBarHidden(true)
+        .toolbar(.hidden, for: .tabBar)
         .onAppear {
             viewModel.updateExhibits(appState.exhibits)
             viewModel.checkAuthorization()
@@ -61,6 +70,11 @@ struct CameraGuideView: View {
                     .presentationDragIndicator(.visible)
             }
         }
+        .sheet(isPresented: $showSettings) {
+            NavigationStack {
+                SettingsView()
+            }
+        }
         .photosPicker(
             isPresented: $isGalleryPresented,
             selection: $selectedPhotoItem,
@@ -85,6 +99,99 @@ struct CameraGuideView: View {
             }
         }
     }
+    
+    // MARK: - Top Bar
+    
+    private var topBar: some View {
+        HStack {
+            // 返回按钮
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .background(Color.white.opacity(0.2))
+                    .clipShape(Circle())
+            }
+            .accessibilityLabel("返回")
+            
+            Spacer()
+            
+            // 设置按钮
+            Button {
+                showSettings = true
+            } label: {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 18))
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+            }
+            .accessibilityLabel("设置")
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 10)
+    }
+    
+    // MARK: - Scan Frame
+    
+    private var scanFrame: some View {
+        GeometryReader { geometry in
+            let size = min(geometry.size.width, geometry.size.height) * 0.7
+            let cornerLength: CGFloat = 40
+            let cornerWidth: CGFloat = 4
+            
+            ZStack {
+                // 四个角
+                // 左上
+                VStack(spacing: 0) {
+                    HStack(spacing: 0) {
+                        RoundedCorner(cornerRadius: 20, corners: .topLeft)
+                            .stroke(Color.white.opacity(0.8), lineWidth: cornerWidth)
+                            .frame(width: cornerLength, height: cornerLength)
+                        Spacer()
+                    }
+                    Spacer()
+                }
+                
+                // 右上
+                VStack(spacing: 0) {
+                    HStack(spacing: 0) {
+                        Spacer()
+                        RoundedCorner(cornerRadius: 20, corners: .topRight)
+                            .stroke(Color.white.opacity(0.8), lineWidth: cornerWidth)
+                            .frame(width: cornerLength, height: cornerLength)
+                    }
+                    Spacer()
+                }
+                
+                // 左下
+                VStack(spacing: 0) {
+                    Spacer()
+                    HStack(spacing: 0) {
+                        RoundedCorner(cornerRadius: 20, corners: .bottomLeft)
+                            .stroke(Color.white.opacity(0.8), lineWidth: cornerWidth)
+                            .frame(width: cornerLength, height: cornerLength)
+                        Spacer()
+                    }
+                }
+                
+                // 右下
+                VStack(spacing: 0) {
+                    Spacer()
+                    HStack(spacing: 0) {
+                        Spacer()
+                        RoundedCorner(cornerRadius: 20, corners: .bottomRight)
+                            .stroke(Color.white.opacity(0.8), lineWidth: cornerWidth)
+                            .frame(width: cornerLength, height: cornerLength)
+                    }
+                }
+            }
+            .frame(width: size, height: size)
+            .position(x: geometry.size.width / 2, y: geometry.size.height / 2 - 40)
+        }
+    }
 
     private var statusOverlay: some View {
         VStack(spacing: 12) {
@@ -92,109 +199,95 @@ struct CameraGuideView: View {
                 Label(message, systemImage: "exclamationmark.triangle")
                     .font(.callout)
                     .foregroundStyle(.white)
-                    .padding(12)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(.ultraThinMaterial, in: Capsule())
                     .accessibilityLabel(message)
+                
                 Button("重试") {
                     viewModel.reset()
                 }
-                .buttonStyle(.bordered)
-                .tint(.white)
+                .font(.callout.weight(.medium))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 8)
+                .background(Color.white.opacity(0.2), in: Capsule())
                 .accessibilityLabel("重试识别")
-                .accessibilityHint("重新开始识别展品")
             } else {
                 Text(stageHint)
                     .font(.callout)
                     .foregroundStyle(.white)
-                    .padding(12)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Color.black.opacity(0.5), in: Capsule())
                     .accessibilityLabel(stageHint)
             }
         }
-        .padding(.top, 60)
     }
 
     private var cameraControls: some View {
-        HStack(alignment: .center, spacing: 0) {
-            // 左侧：相册按钮
-            Button {
-                isGalleryPresented = true
-            } label: {
-                Image(systemName: "photo.on.rectangle.angled")
-                    .font(.system(size: 24))
-                    .foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
-            }
-            .accessibilityLabel("相册")
-            .accessibilityHint("从相册选择照片")
+        VStack(spacing: 20) {
+            HStack(alignment: .center, spacing: 0) {
+                // 左侧：相册按钮
+                Button {
+                    isGalleryPresented = true
+                } label: {
+                    Image(systemName: "photo.on.rectangle.angled")
+                        .font(.system(size: 22))
+                        .foregroundStyle(.white)
+                        .frame(width: 50, height: 50)
+                }
+                .accessibilityLabel("相册")
 
-            Spacer()
+                Spacer()
 
-            // 中间：拍照按钮
-            Button {
-                cameraController.capturePhoto()
-            } label: {
-                ZStack {
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: 72, height: 72)
-
-                    Circle()
-                        .stroke(Color.black, lineWidth: 2)
-                        .frame(width: 64, height: 64)
-
-                    if viewModel.isProcessing {
-                        ProgressView()
-                            .tint(.black)
-                    } else {
+                // 中间：拍照按钮
+                Button {
+                    cameraController.capturePhoto()
+                } label: {
+                    ZStack {
                         Circle()
-                            .fill(Color.black)
-                            .frame(width: 56, height: 56)
+                            .stroke(Color.white.opacity(0.5), lineWidth: 4)
+                            .frame(width: 80, height: 80)
+
+                        Circle()
+                            .fill(Color.white)
+                            .frame(width: 68, height: 68)
+
+                        if viewModel.isProcessing {
+                            ProgressView()
+                                .tint(.black)
+                        }
                     }
                 }
-            }
-            .disabled(viewModel.isProcessing)
-            .accessibilityLabel("拍照")
-            .accessibilityHint("拍摄展牌或文物主体")
+                .disabled(viewModel.isProcessing)
+                .accessibilityLabel("拍照")
 
-            Spacer()
+                Spacer()
 
-            // 右侧：预览/跳过按钮
-            if let preview = lastCapturedPreview {
-                Button {
-                    // 可以点击预览查看详情
-                } label: {
+                // 右侧：预览/历史按钮
+                if let preview = lastCapturedPreview {
                     Image(uiImage: preview)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 44, height: 44)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                }
-                .accessibilityLabel("最近拍摄")
-            } else {
-                Button {
-                    // 跳过拍摄，直接进入详情
-                    if let exhibit = appState.exhibits.first {
-                        viewModel.recognitionState = .recognized(exhibit)
-                        viewModel.isSheetPresented = true
+                        .frame(width: 50, height: 50)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .accessibilityLabel("最近拍摄")
+                } else {
+                    Button {
+                        // 打开历史记录
+                    } label: {
+                        Image(systemName: "tray")
+                            .font(.system(size: 22))
+                            .foregroundStyle(.white)
+                            .frame(width: 50, height: 50)
                     }
-                } label: {
-                    Text("跳过")
-                        .font(.callout)
-                        .foregroundStyle(.white)
+                    .accessibilityLabel("历史")
                 }
-                .accessibilityLabel("跳过")
             }
+            .padding(.horizontal, 40)
         }
-        .padding(.horizontal, 24)
-        .padding(.bottom, 8)
-        .background(
-            LinearGradient(
-                colors: [Color.black.opacity(0.6), Color.black.opacity(0.3)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
+        .padding(.bottom, 50)
     }
 
     private func configureCamera() {
@@ -227,7 +320,6 @@ struct CameraGuideView: View {
         guard let item = item else { return }
 
         Task { @MainActor in
-            // 使用 iOS 16+ API 加载图片
             guard let data = try? await item.loadTransferable(type: Data.self) else {
                 viewModel.recognitionState = .failed("无法加载选中的照片")
                 return
@@ -240,7 +332,6 @@ struct CameraGuideView: View {
 
             lastCapturedPreview = image
 
-            // 如果是 done 状态，重置为 signboard 状态来处理新照片
             if case .done = viewModel.captureStage {
                 viewModel.reset()
             }
@@ -267,7 +358,6 @@ struct CameraGuideView: View {
                 }
             }
         case .done:
-            // 如果是 done 状态，重置为 signboard 状态来处理新照片
             viewModel.reset()
             viewModel.handleSignboardPhoto(data)
         }
@@ -276,7 +366,7 @@ struct CameraGuideView: View {
     private var stageHint: String {
         switch viewModel.captureStage {
         case .signboard:
-            return "拍摄展牌/文字以识别展品"
+            return "对准展品开始导览"
         case .artifact:
             return "拍摄文物主体以保存预览"
         case .done:
@@ -284,6 +374,24 @@ struct CameraGuideView: View {
         }
     }
 }
+
+// MARK: - Rounded Corner Shape
+
+private struct RoundedCorner: Shape {
+    var cornerRadius: CGFloat
+    var corners: UIRectCorner
+    
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: cornerRadius, height: cornerRadius)
+        )
+        return Path(path.cgPath)
+    }
+}
+
+// MARK: - Exhibit Sheet View
 
 private struct ExhibitSheetView: View {
     @Environment(\.dismiss) private var dismiss
@@ -329,7 +437,6 @@ private struct ExhibitSheetView: View {
                 Label("下一步：拍摄文物主体照片", systemImage: "camera")
                     .font(.callout)
                     .foregroundStyle(.secondary)
-                    .accessibilityLabel("下一步拍摄文物主体照片")
             }
 
             NavigationLink {
@@ -339,10 +446,7 @@ private struct ExhibitSheetView: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .accessibilityLabel("查看展品详情")
-            .accessibilityHint("进入展品详情页")
 
-            // 完成按钮
             if case .done = stage {
                 Button {
                     dismiss()
