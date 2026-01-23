@@ -328,15 +328,40 @@ struct ExhibitDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             Divider()
             
-            // 易读版
+            // 易读版（可点击让数字人手语解读）
             VStack(alignment: .leading, spacing: 4) {
-                Text("易读版")
-                    .font(.system(size: 12, weight: .semibold))
+                HStack {
+                    Text("易读版")
+                        .font(.system(size: 12, weight: .semibold))
+                    Spacer()
+                    Button {
+                        if !easyTextContent.isEmpty && avatarCoordinator.isLoaded {
+                            avatarCoordinator.sendText(easyTextContent)
+                            Haptics.lightImpact()
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "hand.wave")
+                                .font(.system(size: 10))
+                            Text("手语解读")
+                                .font(.system(size: 10))
+                        }
+                        .foregroundStyle(.blue)
+                    }
+                    .disabled(easyTextContent.isEmpty || !avatarCoordinator.isLoaded)
+                    .accessibilityLabel("手语解读易读版")
+                }
                 if !easyTextContent.isEmpty {
                     Text(easyTextContent)
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
+                        .onTapGesture {
+                            if avatarCoordinator.isLoaded {
+                                avatarCoordinator.sendText(easyTextContent)
+                                Haptics.lightImpact()
+                            }
+                        }
                 } else {
                     Text("暂无易读版内容")
                         .font(.system(size: 12))
@@ -344,9 +369,14 @@ struct ExhibitDetailView: View {
                 }
             }
             
-            // 术语卡片
+            // 术语卡片（可点击获取大模型详细解释）
             if !exhibit.glossary.isEmpty {
-                GlossaryChips(items: exhibit.glossary)
+                GlossaryChips(
+                    items: exhibit.glossary,
+                    exhibit: exhibit,
+                    askViewModel: askViewModel,
+                    avatarCoordinator: avatarCoordinator
+                )
             }
             
             // 拍摄位置
@@ -499,13 +529,26 @@ private struct TagChipBackgroundModifier: ViewModifier {
 
 private struct GlossaryChips: View {
     let items: [GlossaryItem]
+    let exhibit: Exhibit
+    @ObservedObject var askViewModel: AskViewModel
+    @ObservedObject var avatarCoordinator: AvatarCoordinator
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("术语卡片")
-                .font(.system(size: 12, weight: .semibold))
+            HStack {
+                Text("术语卡片")
+                    .font(.system(size: 12, weight: .semibold))
+                Text("(点击获取详细解释)")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.tertiary)
+            }
             FlexibleTagLayout(items) { item in
-                GlossaryChipItem(item: item)
+                GlossaryChipItem(
+                    item: item,
+                    exhibit: exhibit,
+                    askViewModel: askViewModel,
+                    avatarCoordinator: avatarCoordinator
+                )
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -514,21 +557,44 @@ private struct GlossaryChips: View {
 
 private struct GlossaryChipItem: View {
     let item: GlossaryItem
+    let exhibit: Exhibit
+    @ObservedObject var askViewModel: AskViewModel
+    @ObservedObject var avatarCoordinator: AvatarCoordinator
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(item.term)
-                .font(.system(size: 11, weight: .semibold))
-            Text(item.def)
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
-                .lineLimit(3)
+        Button {
+            // 点击术语卡片，通过大模型获取详细解释
+            let question = "请详细解释「\(item.term)」这个术语在\(exhibit.title)中的含义和重要性"
+            let contextText = """
+            标题：\(exhibit.title)
+            简介：\(exhibit.shortIntro)
+            术语：\(item.term)
+            基础解释：\(item.def)
+            """
+            askViewModel.ask(exhibitId: exhibit.id, question: question, contextText: contextText)
+            Haptics.lightImpact()
+        } label: {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(item.term)
+                        .font(.system(size: 11, weight: .semibold))
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 8))
+                        .foregroundStyle(.blue)
+                }
+                Text(item.def)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(3)
+                    .multilineTextAlignment(.leading)
+            }
+            .padding(8)
+            .frame(maxWidth: 150, alignment: .leading)
+            .modifier(GlossaryChipBackgroundModifier())
         }
-        .padding(8)
-        .frame(maxWidth: 150)
-        .modifier(GlossaryChipBackgroundModifier())
+        .buttonStyle(.plain)
         .accessibilityLabel(item.term)
-        .accessibilityHint(item.def)
+        .accessibilityHint("点击获取详细解释：\(item.def)")
     }
 }
 
