@@ -175,7 +175,7 @@ struct ExhibitDetailView: View {
             .padding(.vertical, 16)
         }
         .background(Color(red: 0.95, green: 0.95, blue: 0.95))
-        .navigationTitle("展品信息")
+        .navigationTitle(exhibit.title)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             viewModel.loadGeneratedNarration(title: exhibit.title)
@@ -215,7 +215,7 @@ struct ExhibitDetailView: View {
             coordinator: avatarCoordinator
         )
         .frame(maxWidth: .infinity)
-        .frame(height: 304)
+        .aspectRatio(3/4, contentMode: .fit) // 保持 3:4 宽高比，避免压扁
         .modifier(LiquidGlassCardModifier())
         .accessibilityLabel("手语解说视频")
         .accessibilityHint("展品的手语解说")

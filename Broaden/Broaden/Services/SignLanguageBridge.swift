@@ -97,7 +97,7 @@ struct SignLanguageWebView: UIViewRepresentable {
         contentController.add(context.coordinator, name: "playbackComplete")
         contentController.add(context.coordinator, name: "debugLog")
         
-        // 注入 CSS 缩放脚本，让数字人占满容器
+        // 注入 CSS 样式，让数字人正确显示在容器中
         let zoomScript = WKUserScript(
             source: """
                 var style = document.createElement('style');
@@ -108,17 +108,17 @@ struct SignLanguageWebView: UIViewRepresentable {
                         overflow: hidden !important;
                         width: 100% !important;
                         height: 100% !important;
+                        background: white !important;
                     }
                     body {
                         display: flex !important;
                         justify-content: center !important;
                         align-items: center !important;
-                        transform: scale(1.3) !important;
-                        transform-origin: center center !important;
                     }
                     canvas, #avatar-container, .avatar-wrapper {
-                        max-width: 100% !important;
-                        max-height: 100% !important;
+                        width: 100% !important;
+                        height: 100% !important;
+                        object-fit: contain !important;
                     }
                 `;
                 document.head.appendChild(style);
