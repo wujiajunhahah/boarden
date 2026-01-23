@@ -8,6 +8,7 @@ private let signLanguageAvatarURL = "https://ios-avatar-web.vercel.app"
 
 /// 手语数字人协调器 - 作为控制数字人的"遥控器"
 /// 可以被多个视图共享，用于发送手语脚本、停止播放等操作
+@MainActor
 class AvatarCoordinator: ObservableObject {
     weak var webView: WKWebView?
     
@@ -19,6 +20,11 @@ class AvatarCoordinator: ObservableObject {
     
     /// 是否正在播放
     @Published private(set) var isPlaying: Bool = false
+    
+    /// 内部方法：设置播放状态（供 WebViewCoordinator 使用）
+    func setPlaying(_ value: Bool) {
+        isPlaying = value
+    }
     
     /// 发送手语脚本到数字人
     /// - Parameter text: 要翻译的文本内容
@@ -45,7 +51,7 @@ class AvatarCoordinator: ObservableObject {
             if let error = error {
                 print("[SignLanguageBridge] JS执行错误: \(error.localizedDescription)")
             }
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 self?.isPlaying = false
             }
         }
@@ -99,11 +105,18 @@ struct SignLanguageWebView: UIViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
         
-        // 核心：让 WebView 本身变得完全透明且不可滚动
-        webView.isOpaque = false
-        webView.backgroundColor = .clear
-        webView.scrollView.backgroundColor = .clear
+        // 设置 WebView 背景色（浅灰色，确保可见）
+        webView.isOpaque = true
+        webView.backgroundColor = UIColor.systemGray6
+        webView.scrollView.backgroundColor = UIColor.systemGray6
         webView.scrollView.isScrollEnabled = false
+        
+        // 启用调试日志
+        #if DEBUG
+        if #available(iOS 16.4, *) {
+            webView.isInspectable = true
+        }
+        #endif
         
         // 绑定 WebView 引用到协调器
         coordinator.webView = webView
@@ -148,7 +161,7 @@ struct SignLanguageWebView: UIViewRepresentable {
         // MARK: - WKScriptMessageHandler
         
         func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 switch message.name {
                 case "loadComplete":
                     print("[SignLanguageWebView] 数字人加载完成: \(message.body)")
@@ -160,7 +173,7 @@ struct SignLanguageWebView: UIViewRepresentable {
                     
                 case "playbackComplete":
                     print("[SignLanguageWebView] 播放完成")
-                    self.parent.coordinator.isPlaying = false
+                    self.parent.coordinator.setPlaying(false)
                     
                 case "debugLog":
                     print("[SignLanguageWebView-JS] \(message.body)")
@@ -176,10 +189,11 @@ struct SignLanguageWebView: UIViewRepresentable {
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             print("[SignLanguageWebView] 页面加载完成")
             
-            // 超时保护：如果 10 秒后还没收到 loadComplete，自动设置为已加载
-            DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+            // 页面加载完成后，短暂延迟让 WebView 渲染，然后标记为已加载
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(500))
                 if !self.parent.coordinator.isLoaded {
-                    print("[SignLanguageWebView] 加载超时，强制设置为已加载")
+                    print("[SignLanguageWebView] 页面渲染完成，设置为已加载")
                     self.parent.coordinator.isLoaded = true
                 }
             }
@@ -191,10 +205,19 @@ struct SignLanguageWebView: UIViewRepresentable {
         
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
             print("[SignLanguageWebView] 预导航失败: \(error.localizedDescription)")
+            print("[SignLanguageWebView] 错误详情: \(error)")
+        }
+        
+        func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+            print("[SignLanguageWebView] 开始加载页面...")
+        }
+        
+        func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+            print("[SignLanguageWebView] 页面内容开始到达...")
         }
         
         // 允许所有 HTTPS 请求
-        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
             decisionHandler(.allow)
         }
     }
@@ -202,7 +225,7 @@ struct SignLanguageWebView: UIViewRepresentable {
 
 // MARK: - SignLanguageAvatarView
 
-/// 手语数字人视图 - 带有加载状态和错误处理的完整组件
+/// 手语数字人视图 - 直接显示网页
 struct SignLanguageAvatarView: View {
     /// 要翻译的文本
     let textToTranslate: String
@@ -211,8 +234,6 @@ struct SignLanguageAvatarView: View {
     var externalCoordinator: AvatarCoordinator?
     
     @StateObject private var internalCoordinator = AvatarCoordinator()
-    @State private var hasError = false
-    @State private var errorMessage = ""
     
     /// 实际使用的协调器
     private var coordinator: AvatarCoordinator {
@@ -220,57 +241,10 @@ struct SignLanguageAvatarView: View {
     }
     
     var body: some View {
-        ZStack {
-            // 数字人 WebView 层
-            SignLanguageWebView(
-                coordinator: coordinator,
-                initialText: textToTranslate
-            )
-            
-            // 加载中遮罩
-            if !coordinator.isLoaded {
-                VStack(spacing: 12) {
-                    ProgressView()
-                        .scaleEffect(1.2)
-                    Text("加载手语数字人...")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(.thinMaterial)
-            }
-            
-            // 错误遮罩
-            if hasError {
-                VStack(spacing: 12) {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.orange)
-                    Text("手语服务加载失败")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                    if !errorMessage.isEmpty {
-                        Text(errorMessage)
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                            .lineLimit(2)
-                    }
-                    Button("重试") {
-                        hasError = false
-                        coordinator.reload()
-                    }
-                    .buttonStyle(.bordered)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(.thinMaterial)
-            }
-        }
-        .onChange(of: textToTranslate) { _, newValue in
-            // 当文本变化时，自动发送到数字人
-            if coordinator.isLoaded && !newValue.isEmpty {
-                coordinator.sendText(newValue)
-            }
-        }
+        SignLanguageWebView(
+            coordinator: coordinator,
+            initialText: textToTranslate
+        )
     }
 }
 

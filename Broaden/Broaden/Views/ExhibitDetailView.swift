@@ -37,6 +37,7 @@ struct ExhibitDetailView: View {
                     }
                 }
 
+                // 手语视频 - 直接加载，不做延迟
                 SignVideoPlayer(
                     filename: exhibit.media.signVideoFilename,
                     textForTranslation: viewModel.generatedEasyText ?? exhibit.easyText,
@@ -46,6 +47,15 @@ struct ExhibitDetailView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .accessibilityLabel("手语解说视频")
                     .accessibilityHint("展品的手语解说")
+                    .onChange(of: avatarCoordinator.isLoaded) { _, isLoaded in
+                        // 数字人加载完成后，自动发送讲解脚本
+                        if isLoaded {
+                            let text = viewModel.generatedEasyText ?? exhibit.easyText
+                            if !text.isEmpty {
+                                avatarCoordinator.sendText(text)
+                            }
+                        }
+                    }
                     .onChange(of: viewModel.generatedEasyText) { _, newValue in
                         // 当生成的易读版文本更新时，自动发送到数字人进行翻译
                         if let text = newValue, !text.isEmpty, avatarCoordinator.isLoaded {

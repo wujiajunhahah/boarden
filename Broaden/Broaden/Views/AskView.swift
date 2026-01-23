@@ -166,8 +166,14 @@ private struct AnswerCardView: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
         .accessibilityLabel("回答")
         .onAppear {
-            // 当新回答出现时，如果已经选中手语脚本标签，自动发送
-            if selectedLayer == 2 && !response.signScript.isEmpty && avatarCoordinator.isLoaded {
+            // 当新回答出现时，自动发送手语脚本到数字人
+            if !response.signScript.isEmpty && avatarCoordinator.isLoaded {
+                avatarCoordinator.sendText(response.signScript)
+            }
+        }
+        .onChange(of: avatarCoordinator.isLoaded) { _, isLoaded in
+            // 如果数字人刚加载完成，发送手语脚本
+            if isLoaded && !response.signScript.isEmpty {
                 avatarCoordinator.sendText(response.signScript)
             }
         }
