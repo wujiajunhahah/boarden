@@ -13,7 +13,8 @@ final class AskViewModel: ObservableObject {
         if let askService {
             self.askService = askService
         } else {
-            self.askService = DeepSeekAskService()
+            // 优先使用通义千问
+            self.askService = QwenAskService()
         }
     }
 

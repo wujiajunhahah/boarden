@@ -44,7 +44,7 @@
 		01A1A0F60000000100000002 /* Secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = 01A1A0F50000000100000002 /* Secrets.plist */; };
 		01A1A0F80000000100000002 /* ExhibitGenerationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0F70000000100000002 /* ExhibitGenerationService.swift */; };
 		01A1A0FA0000000100000002 /* TextProcessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0F90000000100000002 /* TextProcessing.swift */; };
-		01A1A0FC0000000100000001 /* SignLanguageAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0FB0000000100000001 /* SignLanguageAvatarView.swift */; };
+		01A1A0FC0000000100000003 /* SignLanguageBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0FB0000000100000003 /* SignLanguageBridge.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -87,7 +87,7 @@
 		01A1A0F50000000100000002 /* Secrets.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Secrets.plist; sourceTree = "<group>"; };
 		01A1A0F70000000100000002 /* ExhibitGenerationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExhibitGenerationService.swift; sourceTree = "<group>"; };
 		01A1A0F90000000100000002 /* TextProcessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextProcessing.swift; sourceTree = "<group>"; };
-		01A1A0FB0000000100000001 /* SignLanguageAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignLanguageAvatarView.swift; sourceTree = "<group>"; };
+		01A1A0FB0000000100000003 /* SignLanguageBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignLanguageBridge.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -158,6 +158,7 @@
 				01A1A0B20000000100000002 /* ExhibitMatchService.swift */,
 				01A1A0B30000000100000002 /* AnswerCache.swift */,
 				01A1A0B40000000100000002 /* CameraSessionController.swift */,
+				01A1A0FB0000000100000003 /* SignLanguageBridge.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -185,7 +186,6 @@
 				01A1A0A80000000100000001 /* AskView.swift */,
 				01A1A0A90000000100000001 /* FaceToFaceView.swift */,
 				01A1A0AA0000000100000001 /* SettingsView.swift */,
-				01A1A0FB0000000100000001 /* SignLanguageAvatarView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -315,7 +315,7 @@
 				01A1A0B80000000100000001 /* AskView.swift in Sources */,
 				01A1A0B90000000100000001 /* FaceToFaceView.swift in Sources */,
 				01A1A0BA0000000100000001 /* SettingsView.swift in Sources */,
-				01A1A0FC0000000100000001 /* SignLanguageAvatarView.swift in Sources */,
+				01A1A0FC0000000100000003 /* SignLanguageBridge.swift in Sources */,
 				01A1A0BB0000000100000001 /* Exhibit.swift in Sources */,
 				01A1A0BC0000000100000001 /* AskModels.swift in Sources */,
 				01A1A0BD0000000100000001 /* SettingsModels.swift in Sources */,

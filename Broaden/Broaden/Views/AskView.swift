@@ -106,6 +106,7 @@ private struct AnswerCardView: View {
     /// 手语数字人协调器 - 用于发送手语脚本
     @ObservedObject var avatarCoordinator: AvatarCoordinator
     @State private var selectedLayer = 0
+    @State private var hasSentSignScript = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -118,9 +119,9 @@ private struct AnswerCardView: View {
             .accessibilityLabel("回答层级")
             .accessibilityHint("切换简版、详版或手语脚本")
             .onChange(of: selectedLayer) { _, newValue in
-                // 当用户切换到手语脚本时，自动发送到数字人进行翻译
-                if newValue == 2 && !response.signScript.isEmpty && avatarCoordinator.isLoaded {
-                    avatarCoordinator.sendText(response.signScript)
+                // 当用户切换到手语脚本 tab 时，如果还没发送过，则发送
+                if newValue == 2 && !hasSentSignScript && !response.signScript.isEmpty && avatarCoordinator.isLoaded {
+                    sendSignScript()
                 }
             }
 
@@ -139,14 +140,14 @@ private struct AnswerCardView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(response.signScript)
                             .font(.body)
-                        
+
                         // 手语脚本状态指示
                         if avatarCoordinator.isLoaded {
                             HStack(spacing: 4) {
                                 Circle()
                                     .fill(.green)
                                     .frame(width: 8, height: 8)
-                                Text("数字人已就绪")
+                                Text(hasSentSignScript ? "已发送到数字人" : "数字人已就绪")
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                             }
@@ -166,11 +167,27 @@ private struct AnswerCardView: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
         .accessibilityLabel("回答")
         .onAppear {
-            // 当新回答出现时，如果已经选中手语脚本标签，自动发送
-            if selectedLayer == 2 && !response.signScript.isEmpty && avatarCoordinator.isLoaded {
-                avatarCoordinator.sendText(response.signScript)
+            // 回答卡片出现时，自动发送手语脚本到数字人
+            sendSignScriptIfNeeded()
+        }
+        .onChange(of: avatarCoordinator.isLoaded) { _, isLoaded in
+            // 数字人就绪时，发送手语脚本
+            if isLoaded {
+                sendSignScriptIfNeeded()
             }
         }
+    }
+
+    private func sendSignScriptIfNeeded() {
+        if !hasSentSignScript && !response.signScript.isEmpty && avatarCoordinator.isLoaded {
+            sendSignScript()
+        }
+    }
+
+    private func sendSignScript() {
+        print("[AnswerCardView] 📤 发送追问手语脚本: \(response.signScript.prefix(30))...")
+        avatarCoordinator.sendText(response.signScript)
+        hasSentSignScript = true
     }
 
     private var confidenceText: String {
