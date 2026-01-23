@@ -62,6 +62,11 @@
                     
                     isReady = true; // 标记加载完成
                     console.log('Avatar is ready for commands');
+                    
+                    // 通知 iOS 原生端加载完成
+                    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.loadComplete) {
+                        window.webkit.messageHandlers.loadComplete.postMessage("ready");
+                    }
                 });
             }
         });
