@@ -11,6 +11,7 @@ struct SettingsView: View {
     @State private var showSyncSuccess = false
     @State private var userName = "平花选手"
     @State private var isEditingName = false
+    @FocusState private var isTextFieldFocused: Bool
 
     var body: some View {
         ZStack {
@@ -44,6 +45,25 @@ struct SettingsView: View {
         }
         .navigationTitle("设置")
         .navigationBarTitleDisplayMode(.inline)
+        .onTapGesture {
+            // 点击空白区域隐藏键盘
+            hideKeyboard()
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("完成") {
+                    isTextFieldFocused = false
+                    isEditingName = false
+                }
+            }
+        }
+    }
+    
+    private func hideKeyboard() {
+        isTextFieldFocused = false
+        isEditingName = false
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
     
     // MARK: - Background View
@@ -101,9 +121,12 @@ struct SettingsView: View {
                     TextField("用户名", text: $userName)
                         .font(.system(size: 20, weight: .semibold))
                         .textFieldStyle(.plain)
+                        .focused($isTextFieldFocused)
                         .onSubmit {
                             isEditingName = false
+                            isTextFieldFocused = false
                         }
+                        .submitLabel(.done)
                 } else {
                     Text(userName)
                         .font(.system(size: 20, weight: .semibold))
@@ -111,11 +134,17 @@ struct SettingsView: View {
                 }
                 
                 Button {
-                    isEditingName.toggle()
+                    if isEditingName {
+                        isEditingName = false
+                        isTextFieldFocused = false
+                    } else {
+                        isEditingName = true
+                        isTextFieldFocused = true
+                    }
                 } label: {
-                    Image(systemName: "pencil")
+                    Image(systemName: isEditingName ? "checkmark" : "pencil")
                         .font(.system(size: 14))
-                        .foregroundStyle(Color.secondaryText)
+                        .foregroundStyle(isEditingName ? .green : Color.secondaryText)
                 }
             }
             
