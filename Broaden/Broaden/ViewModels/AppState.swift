@@ -379,4 +379,84 @@ final class AppState: ObservableObject {
         saveLocations()
         print("[AppState] 已强制同步到 iCloud")
     }
+    
+    // MARK: - CloudKit Sync
+    
+    /// CloudKit 同步服务
+    private lazy var cloudKitService = CloudKitSyncService()
+    
+    /// 是否正在同步 CloudKit
+    var isCloudKitSyncing: Bool {
+        cloudKitService.isSyncing
+    }
+    
+    /// CloudKit 是否可用
+    var isCloudKitAvailable: Bool {
+        cloudKitService.isCloudAvailable
+    }
+    
+    /// CloudKit 最后同步时间
+    var cloudKitLastSyncDate: Date? {
+        cloudKitService.lastSyncDate
+    }
+    
+    /// 同步到 CloudKit
+    func syncToCloudKit() async {
+        await cloudKitService.syncAll(exhibits: userExhibits, photoURLs: artifactPhotoURLs)
+    }
+    
+    /// 从 CloudKit 拉取数据
+    func pullFromCloudKit() async {
+        guard let result = await cloudKitService.fetchFromCloud() else { return }
+        
+        // 合并展品
+        for exhibit in result.exhibits {
+            if !userExhibits.contains(where: { $0.id == exhibit.id }) {
+                userExhibits.append(exhibit)
+            }
+        }
+        
+        // 合并图片 URL
+        for (exhibitId, url) in result.photoURLs {
+            if artifactPhotoURLs[exhibitId] == nil {
+                artifactPhotoURLs[exhibitId] = url
+            }
+        }
+        
+        // 保存到本地
+        saveUserExhibits()
+        saveArtifactsMapping()
+        
+        // 刷新展品列表
+        await loadExhibits()
+        
+        print("[AppState] 已从 CloudKit 拉取并合并数据")
+    }
+    
+    /// 完整 CloudKit 同步（推拉）
+    func fullCloudKitSync() async {
+        // 先拉取远程数据
+        await pullFromCloudKit()
+        // 再推送本地数据
+        await syncToCloudKit()
+    }
+    
+    /// 保存图片 URL 映射
+    private func saveArtifactsMapping() {
+        var entries: [String: String] = [:]
+        for (id, url) in artifactPhotoURLs {
+            entries[id] = url.lastPathComponent
+        }
+        
+        if let data = try? JSONEncoder().encode(entries) {
+            iCloudStore.set(data, forKey: artifactKey)
+            iCloudStore.synchronize()
+            UserDefaults.standard.set(data, forKey: artifactKey)
+        }
+    }
+    
+    /// 订阅 CloudKit 变更通知
+    func subscribeToCloudKitChanges() async {
+        await cloudKitService.subscribeToChanges()
+    }
 }

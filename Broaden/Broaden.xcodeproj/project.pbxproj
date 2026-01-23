@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01A1A1050000000300000001 /* CloudKitSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A1040000000300000001 /* CloudKitSyncService.swift */; };
 		01A1A1030000000200000002 /* SignLanguageBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A1020000000200000002 /* SignLanguageBridge.swift */; };
 		01A1A1010000000200000002 /* SubjectMaskingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A1000000000200000002 /* SubjectMaskingService.swift */; };
 		01A1A0FF0000000100000002 /* LocationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0FD0000000100000002 /* LocationModels.swift */; };
@@ -49,6 +50,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		01A1A1040000000300000001 /* CloudKitSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitSyncService.swift; sourceTree = "<group>"; };
 		01A1A1020000000200000002 /* SignLanguageBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignLanguageBridge.swift; sourceTree = "<group>"; };
 		01A1A1000000000200000002 /* SubjectMaskingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectMaskingService.swift; sourceTree = "<group>"; };
 		01A1A0FD0000000100000002 /* LocationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationModels.swift; sourceTree = "<group>"; };
@@ -145,6 +147,7 @@
 		01A1A0D10000000100000002 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				01A1A1040000000300000001 /* CloudKitSyncService.swift */,
 				01A1A1020000000200000002 /* SignLanguageBridge.swift */,
 				01A1A1000000000200000002 /* SubjectMaskingService.swift */,
 				01A1A0FC0000000100000002 /* LocationService.swift */,
@@ -299,6 +302,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01A1A1050000000300000001 /* CloudKitSyncService.swift in Sources */,
 				01A1A1030000000200000002 /* SignLanguageBridge.swift in Sources */,
 				01A1A1010000000200000002 /* SubjectMaskingService.swift in Sources */,
 				01A1A0FF0000000100000002 /* LocationModels.swift in Sources */,
