@@ -162,11 +162,14 @@ struct ExhibitDetailView: View {
                 // MARK: - 主体提取照片区域
                 artifactPhotoSection
                 
-                // MARK: - 数字人区域（Liquid Glass 卡片）
-                signLanguageSection
-                
                 // MARK: - 文物信息区域
                 exhibitInfoSection
+                
+                // MARK: - 拍摄位置
+                locationSection
+                
+                // MARK: - 数字人区域（Liquid Glass 卡片）
+                signLanguageSection
                 
                 // MARK: - 问答区域
                 AskView(exhibit: exhibit, viewModel: askViewModel, avatarCoordinator: avatarCoordinator)
@@ -378,9 +381,18 @@ struct ExhibitDetailView: View {
                     avatarCoordinator: avatarCoordinator
                 )
             }
-            
-            // 拍摄位置
-            if let location = appState.locationRecord(for: exhibit.id) {
+        }
+        .padding(.top, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    @ViewBuilder
+    private var locationSection: some View {
+        if let location = appState.locationRecord(for: exhibit.id) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("拍摄位置")
+                    .font(.system(size: 12, weight: .semibold))
+                
                 Button {
                     let coordinate = CLLocationCoordinate2D(
                         latitude: location.latitude,
@@ -393,17 +405,22 @@ struct ExhibitDetailView: View {
                 } label: {
                     HStack {
                         Image(systemName: "location.fill")
-                            .font(.system(size: 12))
+                            .font(.system(size: 14))
                         Text(location.displayName)
+                            .font(.system(size: 13))
+                        Spacer()
+                        Image(systemName: "arrow.up.right")
                             .font(.system(size: 12))
                     }
                     .foregroundStyle(.blue)
+                    .padding(12)
+                    .frame(maxWidth: .infinity)
+                    .modifier(LiquidGlassCardModifier())
                 }
-                .accessibilityLabel("拍摄位置")
+                .accessibilityLabel("在地图中打开 \(location.displayName)")
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.top, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     // MARK: - Computed Properties
