@@ -284,6 +284,13 @@ struct CameraGuideView: View {
         }
     }
     
+    private var isDoneStage: Bool {
+        if case .done = viewModel.captureStage {
+            return true
+        }
+        return false
+    }
+    
     private var stageTitle: String {
         switch viewModel.captureStage {
         case .signboard:
@@ -313,7 +320,13 @@ struct CameraGuideView: View {
 
                 // 中间：拍照按钮
                 Button {
-                    cameraController.capturePhoto()
+                    if case .done = viewModel.captureStage {
+                        // 完成状态下，点击开始新一轮拍摄
+                        viewModel.reset()
+                        lastCapturedPreview = nil
+                    } else {
+                        cameraController.capturePhoto()
+                    }
                 } label: {
                     ZStack {
                         Circle()
@@ -327,22 +340,47 @@ struct CameraGuideView: View {
                         if viewModel.isProcessing {
                             ProgressView()
                                 .tint(.black)
+                        } else if case .done = viewModel.captureStage {
+                            // 完成状态显示加号图标，表示新拍摄
+                            Image(systemName: "plus")
+                                .font(.system(size: 24, weight: .medium))
+                                .foregroundStyle(.black)
                         }
                     }
                 }
                 .disabled(viewModel.isProcessing)
-                .accessibilityLabel("拍照")
+                .accessibilityLabel(isDoneStage ? "新拍摄" : "拍照")
 
                 Spacer()
 
-                // 右侧：预览/历史按钮
+                // 右侧：预览/查看详情按钮
                 if let preview = lastCapturedPreview {
-                    Image(uiImage: preview)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 50, height: 50)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .accessibilityLabel("最近拍摄")
+                    Button {
+                        // 点击预览图跳转到展品详情
+                        if case let .done(exhibit, _) = viewModel.captureStage {
+                            appState.pendingExhibitForDetail = exhibit
+                        } else if case let .artifact(exhibit) = viewModel.captureStage {
+                            appState.pendingExhibitForDetail = exhibit
+                        } else if case let .recognized(exhibit) = viewModel.recognitionState {
+                            appState.pendingExhibitForDetail = exhibit
+                        }
+                    } label: {
+                        Image(uiImage: preview)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 50, height: 50)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .overlay(
+                                // 完成状态显示查看提示
+                                Group {
+                                    if isDoneStage {
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.green, lineWidth: 2)
+                                    }
+                                }
+                            )
+                    }
+                    .accessibilityLabel("查看展品详情")
                 } else {
                     Button {
                         // 打开历史记录
