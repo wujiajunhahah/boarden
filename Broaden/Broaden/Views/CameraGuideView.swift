@@ -197,34 +197,101 @@ struct CameraGuideView: View {
     }
 
     private var statusOverlay: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 16) {
+            // 步骤指示器
+            stepIndicator
+            
+            // 状态提示
             if case .failed(let message) = viewModel.recognitionState {
-                Label(message, systemImage: "exclamationmark.triangle")
-                    .font(.callout)
+                VStack(spacing: 10) {
+                    Label(message, systemImage: "exclamationmark.triangle")
+                        .font(.callout)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .accessibilityLabel(message)
+                    
+                    Button("重试") {
+                        viewModel.reset()
+                    }
+                    .font(.callout.weight(.medium))
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(.ultraThinMaterial, in: Capsule())
-                    .accessibilityLabel(message)
-                
-                Button("重试") {
-                    viewModel.reset()
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 8)
+                    .background(Color.white.opacity(0.2), in: Capsule())
+                    .accessibilityLabel("重试识别")
                 }
-                .font(.callout.weight(.medium))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 8)
-                .background(Color.white.opacity(0.2), in: Capsule())
-                .accessibilityLabel("重试识别")
             } else {
-                Text(stageHint)
-                    .font(.callout)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .background(Color.black.opacity(0.5), in: Capsule())
-                    .accessibilityLabel(stageHint)
+                VStack(spacing: 6) {
+                    Text(stageTitle)
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(.white)
+                    
+                    Text(stageHint)
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.8))
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 14)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                .accessibilityLabel("\(stageTitle), \(stageHint)")
             }
+        }
+    }
+    
+    private var stepIndicator: some View {
+        HStack(spacing: 8) {
+            // 步骤1
+            stepDot(step: 1, isActive: true, isCompleted: currentStep > 1)
+            
+            // 连接线
+            Rectangle()
+                .fill(currentStep > 1 ? Color.white : Color.white.opacity(0.3))
+                .frame(width: 30, height: 2)
+            
+            // 步骤2
+            stepDot(step: 2, isActive: currentStep >= 2, isCompleted: currentStep > 2)
+        }
+    }
+    
+    private func stepDot(step: Int, isActive: Bool, isCompleted: Bool) -> some View {
+        ZStack {
+            Circle()
+                .fill(isCompleted ? Color.green : (isActive ? Color.white : Color.white.opacity(0.3)))
+                .frame(width: 28, height: 28)
+            
+            if isCompleted {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(.white)
+            } else {
+                Text("\(step)")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(isActive ? .black : .white.opacity(0.5))
+            }
+        }
+    }
+    
+    private var currentStep: Int {
+        switch viewModel.captureStage {
+        case .signboard:
+            return 1
+        case .artifact:
+            return 2
+        case .done:
+            return 3
+        }
+    }
+    
+    private var stageTitle: String {
+        switch viewModel.captureStage {
+        case .signboard:
+            return "第一步"
+        case .artifact:
+            return "第二步"
+        case .done:
+            return "拍摄完成"
         }
     }
 
@@ -369,11 +436,11 @@ struct CameraGuideView: View {
     private var stageHint: String {
         switch viewModel.captureStage {
         case .signboard:
-            return "对准展品开始导览"
+            return "对准展牌文字拍摄，识别展品信息"
         case .artifact:
-            return "拍摄文物主体以保存预览"
+            return "对准文物主体拍摄，保存展品照片"
         case .done:
-            return "已完成拍摄，可查看详情"
+            return "点击下方查看展品详情"
         }
     }
 }
