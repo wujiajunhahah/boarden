@@ -31,15 +31,16 @@ final class AskViewModel: ObservableObject {
 
         Task {
             let request = AskRequest(exhibitId: exhibitId, question: trimmed, contextText: contextText)
-            if let cached = await cache.load(for: request) {
-                appendResponse(cached)
-                return
-            }
+            // 禁用缓存机制，每次都调用 LLM 获取新回答
+            // if let cached = await cache.load(for: request) {
+            //     appendResponse(cached)
+            //     return
+            // }
 
             do {
                 let response = try await askService.ask(request: request)
                 if let response {
-                    await cache.save(response, for: request)
+                    // await cache.save(response, for: request)
                     appendResponse(response)
                 } else {
                     handleNoResult()
