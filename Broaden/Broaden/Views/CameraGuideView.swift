@@ -4,7 +4,8 @@ import UIKit
 import PhotosUI
 
 struct CameraGuideView: View {
-    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedTab: AppTab
+    
     @EnvironmentObject private var appState: AppState
     @StateObject private var viewModel = CameraGuideViewModel()
     @State private var cameraController = CameraSessionController()
@@ -106,7 +107,7 @@ struct CameraGuideView: View {
         HStack {
             // 返回按钮
             Button {
-                dismiss()
+                selectedTab = .home
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 18, weight: .semibold))

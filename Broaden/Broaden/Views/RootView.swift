@@ -19,7 +19,7 @@ struct RootView: View {
                     }
                     .tag(AppTab.home)
 
-                CameraGuideView()
+                CameraGuideView(selectedTab: $selectedTab)
                     .tabItem {
                         Label("相机", systemImage: "camera.fill")
                     }
