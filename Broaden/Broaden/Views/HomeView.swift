@@ -200,7 +200,7 @@ struct HomeView: View {
                         imageName: "museum_2"
                     )
                 } else {
-                    ForEach(recentExhibits.prefix(3), id: \.id) { exhibit in
+                    ForEach(recentExhibits, id: \.id) { exhibit in
                         NavigationLink {
                             ExhibitDetailView(exhibit: exhibit)
                         } label: {
