@@ -13,12 +13,21 @@
             background-color: transparent !important;
         }
 
-        /* 2. 让容器透明，但不影响交互 */
-        body > div {
+        /* 2. 暴力隐藏所有非 Canvas 的 UI 元素 */
+        /* 确保页面上除了数字人本身，不显示任何 SDK 自动生成的文字或气泡 */
+        body *:not(canvas) {
             background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        
+        div, p, span, b, a {
+            color: transparent !important;
+            pointer-events: none !important;
+            user-select: none !important;
         }
 
-        /* 确保 Canvas（数字人本身）可见 */
+        /* 确保渲染数字人的 Canvas 可见 */
         canvas {
             display: block !important;
             opacity: 1 !important;
@@ -27,14 +36,12 @@
     </style>
 </head>
 <body>
-    <!-- 先加载 SDK（移除 type="module" 避免加载时序问题） -->
-    <script src="https://avatar.gbqr.net/yiyu.js"></script>
+    <script type="module" src="https://avatar.gbqr.net/yiyu.js"></script>
 
     <script>
-        // 初始化状态标记
         let isReady = false;
         let initAttempts = 0;
-        const maxAttempts = 50; // 最多尝试 5 秒
+        const maxAttempts = 50; // 最多重试 5 秒
 
         // 通知 iOS 端的辅助函数
         function notifyiOS(handler, message) {
@@ -49,33 +56,36 @@
 
         // 初始化数字人
         function initAvatar() {
+            // 检测全局 yiyu 对象是否已由 SDK 脚本注入
             if (window.yiyu && window.yiyu.app) {
-                console.log('[Avatar] yiyu SDK found, initializing...');
+                console.log('[Avatar] SDK found, initializing...');
                 
                 yiyu.app.init({
-                    name: 'HLkkvXQwNjEZWePBrQ3OD30irHbxVN7RL7dDeGNehLqfnlkBA+9pro9rGhTgwYNEQY5Yuey5+ueXY7Yr1BgVn/IjerYbX9YH1U3Toe7X5ByM4yJ+feudfabdp+Nz/rOgvY2x5Kt3a6+S+ESCcyxk2Z9CbqCeUjas6xw9+svMthc=', 
-                    readLocalResource: false,
-                    draggable: false,
-                    showToast: false 
+                    // 填入从控制台获取的 APPSecret
+                    name: 'gGcIeTrZFm4E0D6UHZH1v2JhmCbncSDLxVMA1UktGzr/95F9TtaHL4zgSM7RqXL8Qf664k/ApAzRh1plKDv7xG2dycU7orqy/lfO9U747ZN8RKGdqWw886u2zD6eTvPnwRTBUId2/ly2+wEoPG6UHtsYJtn04MzB/Hw3EfO6MAQ=', 
+                    readLocalResource: false, // 读取服务器资源
+                    draggable: false,          // 禁用数字人拖动
+                    showToast: false           // 禁用初始欢迎语弹窗
                 });
 
+                // 监听加载完成事件
                 yiyu.app.onAppReady(function() {
                     console.log('[Avatar] App is ready!');
                     
-                    yiyu.app.disableHyperTranslation();
-                    yiyu.app.disableTextSelection();
+                    // 关闭所有交互提示功能，确保页面纯净
+                    yiyu.app.disableHyperTranslation(); // 关闭点读功能
+                    yiyu.app.disableTextSelection();    // 关闭划词功能
                     
+                    // 设置尺寸与位置，使其占满 WebView 容器
                     yiyu.app.setPosition(0, 0); 
                     yiyu.app.setSize('100%', '100%');
-                    yiyu.app.setAvatarSize(1);
+                    yiyu.app.setAvatarSize(1); // 1为最大显示比例
                     
                     isReady = true;
-                    console.log('[Avatar] Avatar is ready for commands');
-                    
-                    // 通知 iOS 原生端加载完成
-                    notifyiOS('loadComplete', 'ready');
+                    notifyiOS('loadComplete', 'ready'); // 通知 iOS 原生层
                 });
 
+                // 错误监听
                 yiyu.app.onError(function(error) {
                     console.error('[Avatar] Error:', error);
                     notifyiOS('loadError', error.message || 'Unknown error');
@@ -84,57 +94,35 @@
             } else {
                 initAttempts++;
                 if (initAttempts < maxAttempts) {
-                    console.log('[Avatar] Waiting for yiyu SDK... attempt', initAttempts);
                     setTimeout(initAvatar, 100);
                 } else {
-                    console.error('[Avatar] Failed to load yiyu SDK after', maxAttempts, 'attempts');
+                    console.error('[Avatar] Failed to load SDK');
                     notifyiOS('loadError', 'SDK load timeout');
                 }
             }
         }
 
-        // 页面加载完成后开始初始化
-        if (document.readyState === 'complete') {
-            initAvatar();
-        } else {
-            window.addEventListener('load', initAvatar);
-        }
+        // 启动初始化流程
+        window.addEventListener('load', initAvatar);
 
-        // --- 供 iOS 原生调用的接口 ---
+        // --- 供 iOS 原生调用的全局指令接口 ---
 
+        // 开始翻译手语
         window.sendSignText = function(text) {
-            console.log('[Avatar] sendSignText called:', text.substring(0, 50) + '...');
             if (isReady && window.yiyu && window.yiyu.app) {
                 yiyu.app.startTranslate(text);
                 notifyiOS('debugLog', 'Translation started');
             } else {
-                console.warn('[Avatar] Not ready, command ignored. isReady:', isReady);
                 notifyiOS('debugLog', 'Command ignored - not ready');
             }
         };
 
+        // 取消当前翻译
         window.stopSign = function() {
-            console.log('[Avatar] stopSign called');
             if (isReady && window.yiyu && window.yiyu.app) {
                 yiyu.app.cancelTranslation();
             }
         };
-
-        // 调试：检查 URL 参数中的初始文本
-        const urlParams = new URLSearchParams(window.location.search);
-        const initialText = urlParams.get('text');
-        if (initialText) {
-            console.log('[Avatar] Initial text from URL:', initialText.substring(0, 50) + '...');
-            // 等待 ready 后自动翻译
-            const checkAndTranslate = setInterval(function() {
-                if (isReady) {
-                    clearInterval(checkAndTranslate);
-                    window.sendSignText(decodeURIComponent(initialText));
-                }
-            }, 500);
-            // 30 秒后放弃
-            setTimeout(function() { clearInterval(checkAndTranslate); }, 30000);
-        }
     </script>
 </body>
 </html>
