@@ -102,56 +102,118 @@ struct SettingsView: View {
     // MARK: - Profile Card
     
     private var profileCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // 头像
-            Image("app-logo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 60, height: 60)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-            
-            // 用户名
-            HStack(spacing: 8) {
-                if isEditingName {
-                    TextField("用户名", text: $userName)
-                        .font(.system(size: 20, weight: .semibold))
-                        .textFieldStyle(.plain)
-                        .focused($isTextFieldFocused)
-                        .onSubmit {
+        ZStack {
+            // 左侧内容
+            VStack(alignment: .leading, spacing: 0) {
+                // 头像
+                Image("app-logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 50, height: 50)
+                    .clipShape(Circle())
+                    .background(Circle().fill(Color.white))
+                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                
+                Spacer().frame(height: 8)
+                
+                // 用户名行
+                HStack(spacing: 4) {
+                    if isEditingName {
+                        TextField("用户名", text: $userName)
+                            .font(.custom("PingFang SC", size: 20).weight(.medium))
+                            .textFieldStyle(.plain)
+                            .foregroundStyle(.black)
+                            .focused($isTextFieldFocused)
+                            .onSubmit {
+                                isEditingName = false
+                                isTextFieldFocused = false
+                            }
+                            .submitLabel(.done)
+                    } else {
+                        Text(userName)
+                            .font(.custom("PingFang SC", size: 20).weight(.medium))
+                            .foregroundStyle(.black)
+                    }
+                    
+                    Button {
+                        if isEditingName {
                             isEditingName = false
                             isTextFieldFocused = false
+                        } else {
+                            isEditingName = true
+                            isTextFieldFocused = true
                         }
-                        .submitLabel(.done)
-                } else {
-                    Text(userName)
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(Color.primaryText)
+                    } label: {
+                        Image(systemName: isEditingName ? "checkmark" : "pencil")
+                            .font(.system(size: 12))
+                            .foregroundStyle(isEditingName ? .green : .black.opacity(0.5))
+                    }
                 }
                 
-                Button {
-                    if isEditingName {
-                        isEditingName = false
-                        isTextFieldFocused = false
-                    } else {
-                        isEditingName = true
-                        isTextFieldFocused = true
+                // UID
+                Text("UID：\(userUID)")
+                    .font(.custom("PingFang SC", size: 10))
+                    .foregroundStyle(.black.opacity(0.5))
+                    .padding(.top, 2)
+                
+                Spacer()
+                
+                // 统计数据
+                HStack(spacing: 50) {
+                    // 贴纸数
+                    VStack(alignment: .leading, spacing: -8) {
+                        Text("贴纸数")
+                            .font(.custom("PingFang SC", size: 10))
+                            .foregroundStyle(.black)
+                        Text("\(stickerCount)")
+                            .font(.system(size: 48, weight: .light, design: .serif))
+                            .foregroundStyle(.black.opacity(0.5))
                     }
-                } label: {
-                    Image(systemName: isEditingName ? "checkmark" : "pencil")
-                        .font(.system(size: 14))
-                        .foregroundStyle(isEditingName ? .green : Color.secondaryText)
+                    
+                    // 博物馆
+                    VStack(alignment: .leading, spacing: -8) {
+                        Text("博物馆")
+                            .font(.custom("PingFang SC", size: 10))
+                            .foregroundStyle(.black)
+                        Text(String(format: "%02d", museumCount))
+                            .font(.system(size: 48, weight: .light, design: .serif))
+                            .foregroundStyle(.black.opacity(0.5))
+                    }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             
-            Spacer(minLength: 40)
+            // 右侧二维码
+            VStack {
+                Spacer()
+                Image(systemName: "qrcode")
+                    .font(.system(size: 50))
+                    .foregroundStyle(.black.opacity(0.6))
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(height: 180)
-        .modifier(SettingsCardModifier(color: Color(red: 1.0, green: 0.95, blue: 0.75)))
+        .frame(maxWidth: .infinity)
+        .frame(height: 194)
+        .background(Color(red: 0.78, green: 0.73, blue: 0.55).opacity(0.8))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
         .padding(.horizontal, 20)
+    }
+    
+    private var userUID: String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyyMMdd"
+        return dateFormatter.string(from: Date())
+    }
+    
+    private var stickerCount: Int {
+        appState.exhibits.count
+    }
+    
+    private var museumCount: Int {
+        // 统计访问的博物馆数量（暂时用展品数量的估算）
+        max(1, appState.exhibits.count / 10 + 1)
     }
     
     // MARK: - Preferences Card
