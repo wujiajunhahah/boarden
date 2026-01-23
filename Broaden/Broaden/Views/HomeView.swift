@@ -185,20 +185,12 @@ struct HomeView: View {
             
             VStack(spacing: 12) {
                 if recentExhibits.isEmpty {
-                    // 示例数据
-                    HistoryCard(
-                        title: "故宫博物院",
-                        location: "北京",
-                        date: "2026.1.22",
-                        imageName: "museum_1"
-                    )
-                    
-                    HistoryCard(
-                        title: "北京大学博物馆",
-                        location: "北京",
-                        date: "2026.1.22",
-                        imageName: "museum_2"
-                    )
+                    // 空状态提示
+                    Text("暂无历史记录")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color.secondaryText)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
                 } else {
                     ForEach(recentExhibits, id: \.id) { exhibit in
                         NavigationLink {
