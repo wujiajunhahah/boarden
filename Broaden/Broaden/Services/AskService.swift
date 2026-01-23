@@ -83,18 +83,7 @@ struct ZhipuAskService: AskServicing {
 
     /// 当 JSON 解析失败时的回退方案
     private func fallbackResponse(from text: String) -> AskResponse? {
-        // 如果文本包含"未包含"，返回空响应
-        if text.contains("未包含") || text.contains("不足") {
-            return AskResponse(
-                answerSimple: "抱歉，馆方资料中未包含该细节信息。",
-                answerDetail: "根据现有展品资料，无法回答您的问题。您可以在现场咨询讲解员获取更多信息。",
-                citations: [],
-                confidence: .low,
-                signScript: "抱歉，资料中没有这个信息。"
-            )
-        }
-
-        // 直接使用原始文本
+        // 直接使用原始文本，不做预设空响应检查
         return AskResponse(
             answerSimple: String(text.prefix(200)),
             answerDetail: text,
