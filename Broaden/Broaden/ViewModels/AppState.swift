@@ -383,21 +383,28 @@ final class AppState: ObservableObject {
     // MARK: - CloudKit Sync
     
     /// CloudKit 同步服务
-    private lazy var cloudKitService = CloudKitSyncService()
+    private var _cloudKitService: CloudKitSyncService?
+    
+    private var cloudKitService: CloudKitSyncService {
+        if _cloudKitService == nil {
+            _cloudKitService = CloudKitSyncService()
+        }
+        return _cloudKitService!
+    }
     
     /// 是否正在同步 CloudKit
     var isCloudKitSyncing: Bool {
-        cloudKitService.isSyncing
+        _cloudKitService?.isSyncing ?? false
     }
     
     /// CloudKit 是否可用
     var isCloudKitAvailable: Bool {
-        cloudKitService.isCloudAvailable
+        _cloudKitService?.isCloudAvailable ?? false
     }
     
     /// CloudKit 最后同步时间
     var cloudKitLastSyncDate: Date? {
-        cloudKitService.lastSyncDate
+        _cloudKitService?.lastSyncDate
     }
     
     /// 同步到 CloudKit
