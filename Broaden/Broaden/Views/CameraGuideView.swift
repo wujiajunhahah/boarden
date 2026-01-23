@@ -24,30 +24,15 @@ struct CameraGuideView: View {
                 .accessibilityLabel("相机预览")
                 .accessibilityHint("对准展品或展牌")
 
-            // 顶部返回按钮
+            // 相机控制
             VStack {
-                HStack {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundStyle(.white)
-                            .frame(width: 36, height: 36)
-                            .background(.ultraThinMaterial, in: Circle())
-                    }
-                    .accessibilityLabel("关闭")
-                    .accessibilityHint("返回上一页")
-                    Spacer()
-                }
-                .padding(.top, 16)
-                .padding(.horizontal, 20)
                 Spacer()
                 statusOverlay
                 Spacer()
                 cameraControls
             }
             .padding(.bottom, 34)
+            .padding(.top, 60)
         }
         .navigationBarHidden(true)
         .onAppear {

@@ -1,10 +1,10 @@
 import CoreLocation
 import Foundation
+import MapKit
 
 @MainActor
 final class LocationService: NSObject, @preconcurrency CLLocationManagerDelegate {
     private let manager = CLLocationManager()
-    private let geocoder = CLGeocoder()
     private var continuation: CheckedContinuation<CLLocation?, Never>?
 
     override init() {
@@ -37,6 +37,58 @@ final class LocationService: NSObject, @preconcurrency CLLocationManagerDelegate
     }
 
     private func reverseGeocode(_ location: CLLocation) async -> LocationRecord {
+        // iOS 26+ 使用 MapKit 的 MKReverseGeocodingRequest
+        if #available(iOS 26.0, *) {
+            return await reverseGeocodeWithMapKit(location)
+        } else {
+            // iOS 25 及以下使用 CLGeocoder
+            return await reverseGeocodeWithCoreLocation(location)
+        }
+    }
+    
+    /// iOS 26+ 使用 MapKit 的 MKReverseGeocodingRequest
+    @available(iOS 26.0, *)
+    private func reverseGeocodeWithMapKit(_ location: CLLocation) async -> LocationRecord {
+        let coordinate = location.coordinate
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = nil
+        request.region = MKCoordinateRegion(
+            center: coordinate,
+            latitudinalMeters: 100,
+            longitudinalMeters: 100
+        )
+        
+        do {
+            let search = MKLocalSearch(request: request)
+            let response = try await search.start()
+            let mapItem = response.mapItems.first
+            
+            return LocationRecord(
+                latitude: coordinate.latitude,
+                longitude: coordinate.longitude,
+                name: mapItem?.name ?? mapItem?.placemark.title,
+                locality: mapItem?.placemark.locality,
+                administrativeArea: mapItem?.placemark.administrativeArea,
+                country: mapItem?.placemark.country,
+                timestamp: Date()
+            )
+        } catch {
+            // 如果 MapKit 失败，返回基本信息
+            return LocationRecord(
+                latitude: coordinate.latitude,
+                longitude: coordinate.longitude,
+                name: nil,
+                locality: nil,
+                administrativeArea: nil,
+                country: nil,
+                timestamp: Date()
+            )
+        }
+    }
+    
+    /// iOS 25 及以下使用 CLGeocoder
+    private func reverseGeocodeWithCoreLocation(_ location: CLLocation) async -> LocationRecord {
+        let geocoder = CLGeocoder()
         let placemark = (try? await geocoder.reverseGeocodeLocation(location))?.first
         let name = placemark?.areasOfInterest?.first ?? placemark?.name
         return LocationRecord(
