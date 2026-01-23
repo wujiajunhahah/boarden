@@ -186,6 +186,104 @@ final class CameraGuideViewModel: ObservableObject {
         captureStage = .signboard
         scheduleFailureHint()
     }
+    
+    /// 直接从图片生成展品信息（跳过展牌识别）
+    func generateExhibitFromImage(_ data: Data) async throws -> Exhibit? {
+        // 使用智谱视觉模型识别图片中的物体
+        let ocrResult = try? await ocrService.recognize(imageData: data)
+        
+        guard let text = ocrResult?.text, !text.isEmpty else {
+            // 如果 OCR 没有识别到文字，尝试让模型直接描述图片内容
+            return try await generateExhibitFromImageDescription(data)
+        }
+        
+        // 使用识别到的文字生成展品
+        return try await exhibitGenerator.generate(from: text)
+    }
+    
+    /// 使用图片描述生成展品（当 OCR 无法识别文字时）
+    private func generateExhibitFromImageDescription(_ data: Data) async throws -> Exhibit? {
+        guard Secrets.shared.isValidZhipuKey else {
+            throw ExhibitGenerationError.missingAPIKey
+        }
+        
+        // 使用智谱视觉模型描述图片内容
+        let base64Image = data.base64EncodedString()
+        let chatService = ZhipuChatService()
+        
+        let system = """
+        你是一个物体识别专家。请仔细观察图片中的主要物体，生成详细的描述信息。
+        输出严格 JSON 格式：
+        {
+          "name": "物体名称",
+          "category": "类别（如：工艺品、日用品、艺术品、食品等）",
+          "description": "详细描述（50-100字）",
+          "features": ["特征1", "特征2", "特征3"]
+        }
+        """
+        
+        let user = "请识别并描述这张图片中的主要物体。"
+        
+        guard let response = try await chatService.generateWithImage(system: system, user: user, imageBase64: base64Image) else {
+            return nil
+        }
+        
+        // 解析响应并生成展品
+        return parseImageDescriptionToExhibit(response)
+    }
+    
+    /// 解析图片描述生成展品
+    private func parseImageDescriptionToExhibit(_ response: String) -> Exhibit? {
+        // 提取 JSON
+        var jsonString = response
+        if let startRange = response.range(of: "{"),
+           let endRange = response.range(of: "}", options: .backwards) {
+            jsonString = String(response[startRange.lowerBound...endRange.upperBound])
+        }
+        
+        guard let data = jsonString.data(using: .utf8) else { return nil }
+        
+        struct ImageDescription: Codable {
+            let name: String
+            let category: String?
+            let description: String
+            let features: [String]?
+        }
+        
+        guard let desc = try? JSONDecoder().decode(ImageDescription.self, from: data) else {
+            return nil
+        }
+        
+        // 生成唯一 ID
+        let id = "EXH-\(String(format: "%04d", Int.random(in: 1000...9999)))"
+        
+        // 生成术语卡片
+        var glossary: [GlossaryItem] = []
+        if let features = desc.features {
+            glossary = features.prefix(3).map { feature in
+                GlossaryItem(term: feature, def: "该物体的特征之一")
+            }
+        }
+        
+        return Exhibit(
+            id: id,
+            title: desc.name,
+            shortIntro: desc.description,
+            easyText: "这是一个\(desc.category ?? "物品")，名为\(desc.name)。\(desc.description)",
+            detailText: desc.description,
+            glossary: glossary,
+            media: ExhibitMedia(signVideoFilename: "sign_demo.mp4", captionsVttOrSrtFilename: "captions_demo.srt"),
+            references: []
+        )
+    }
+    
+    /// 完成直接拍摄流程
+    func completeDirectCapture(exhibit: Exhibit, artifactURL: URL) {
+        captureStage = .done(exhibit: exhibit, artifactURL: artifactURL)
+        recognitionState = .recognized(exhibit)
+        isSheetPresented = true
+        Haptics.success()
+    }
 
     private func scheduleFailureHint() {
         failureTask?.cancel()

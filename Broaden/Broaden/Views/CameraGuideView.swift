@@ -16,6 +16,7 @@ struct CameraGuideView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var isGalleryPresented = false
     @State private var showSettings = false
+    @State private var isDirectCaptureMode = false  // 跳过展牌识别，直接拍摄物体
 
     var body: some View {
         ZStack {
@@ -236,6 +237,24 @@ struct CameraGuideView: View {
                 .padding(.vertical, 14)
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
                 .accessibilityLabel("\(stageTitle), \(stageHint)")
+                
+                // 第一步时显示跳过按钮
+                if case .signboard = viewModel.captureStage {
+                    Button {
+                        skipToDirectCapture()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("跳过，直接拍摄物体")
+                                .font(.system(size: 13))
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 12))
+                        }
+                        .foregroundStyle(.white.opacity(0.8))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                    }
+                    .accessibilityLabel("跳过展牌识别，直接拍摄物体")
+                }
             }
         }
     }
@@ -291,17 +310,6 @@ struct CameraGuideView: View {
         return false
     }
     
-    private var stageTitle: String {
-        switch viewModel.captureStage {
-        case .signboard:
-            return "第一步"
-        case .artifact:
-            return "第二步"
-        case .done:
-            return "拍摄完成"
-        }
-    }
-
     private var cameraControls: some View {
         VStack(spacing: 20) {
             HStack(alignment: .center, spacing: 0) {
@@ -449,6 +457,14 @@ struct CameraGuideView: View {
     }
 
     private func handlePhotoData(_ data: Data) {
+        // 直接拍摄模式：跳过展牌识别，使用视觉模型识别物体
+        if isDirectCaptureMode {
+            Task {
+                await handleDirectCapture(data)
+            }
+            return
+        }
+        
         switch viewModel.captureStage {
         case .signboard:
             viewModel.handleSignboardPhoto(data)
@@ -467,11 +483,57 @@ struct CameraGuideView: View {
             }
         case .done:
             viewModel.reset()
+            isDirectCaptureMode = false
             viewModel.handleSignboardPhoto(data)
         }
     }
+    
+    /// 跳过展牌识别，进入直接拍摄模式
+    private func skipToDirectCapture() {
+        isDirectCaptureMode = true
+        Haptics.lightImpact()
+    }
+    
+    /// 处理直接拍摄模式：使用智谱视觉模型识别物体并生成展品信息
+    private func handleDirectCapture(_ data: Data) async {
+        viewModel.isProcessing = true
+        
+        do {
+            // 使用智谱视觉模型识别图片中的物体
+            let exhibit = try await viewModel.generateExhibitFromImage(data)
+            
+            if let exhibit = exhibit {
+                // 保存展品
+                appState.upsertExhibit(exhibit)
+                appState.addRecent(exhibit: exhibit)
+                
+                // 提取主体并保存照片
+                let inputImage = UIImage(data: data)
+                let maskedImage = await subjectService.extractSubject(from: inputImage)
+                let outputData = maskedImage?.pngData() ?? data
+                
+                if let url = appState.saveArtifactPhoto(data: outputData, exhibitId: exhibit.id) {
+                    await appState.captureLocation(for: exhibit.id)
+                    viewModel.completeDirectCapture(exhibit: exhibit, artifactURL: url)
+                } else {
+                    viewModel.recognitionState = .failed("保存照片失败，请重试")
+                }
+                
+                isDirectCaptureMode = false
+            } else {
+                viewModel.recognitionState = .failed("无法识别物体，请重试")
+            }
+        } catch {
+            viewModel.recognitionState = .failed("识别失败：\(error.localizedDescription)")
+        }
+        
+        viewModel.isProcessing = false
+    }
 
     private var stageHint: String {
+        if isDirectCaptureMode {
+            return "对准物体拍摄，AI 将自动识别"
+        }
         switch viewModel.captureStage {
         case .signboard:
             return "对准展牌文字拍摄，识别展品信息"
@@ -479,6 +541,20 @@ struct CameraGuideView: View {
             return "对准文物主体拍摄，保存展品照片"
         case .done:
             return "点击下方查看展品详情"
+        }
+    }
+    
+    private var stageTitle: String {
+        if isDirectCaptureMode {
+            return "直接拍摄"
+        }
+        switch viewModel.captureStage {
+        case .signboard:
+            return "第一步"
+        case .artifact:
+            return "第二步"
+        case .done:
+            return "拍摄完成"
         }
     }
 }
