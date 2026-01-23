@@ -107,7 +107,9 @@ struct CameraGuideView: View {
         HStack {
             // 返回按钮
             Button {
-                selectedTab = .home
+                withAnimation {
+                    selectedTab = .home
+                }
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 18, weight: .semibold))
