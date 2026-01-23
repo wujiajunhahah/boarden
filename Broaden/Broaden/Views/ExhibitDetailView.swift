@@ -9,8 +9,9 @@ import Vision
 /// 主体提取图片视图 - 使用 VisionKit 从图片中提取主体（iOS 16+）
 /// 实现 "撕下贴纸" 效果，自动从背景中提取主体并生成透明背景图片
 /// 参考: WWDC23 Session 10176 "Lift subjects from images in your app"
+/// Swift 6 兼容：使用 @MainActor 隔离和 Sendable 类型
 @available(iOS 16.0, *)
-struct ArtifactSubjectView: View {
+struct ArtifactSubjectView: View, Sendable {
     let originalImage: UIImage
 
     @State private var liftedImage: UIImage?
@@ -135,6 +136,7 @@ struct ArtifactSubjectView: View {
 
 // MARK: - ExhibitDetailView
 
+/// 展品详情视图 - Swift 6 兼容，支持 iOS 26 Liquid Glass
 struct ExhibitDetailView: View {
     let exhibit: Exhibit
 
@@ -156,153 +158,229 @@ struct ExhibitDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // 主体提取照片区域 - 使用 VisionKit 自动去除背景
-                if let url = appState.artifactPhotoURL(for: exhibit.id),
-                   let image = UIImage(contentsOfFile: url.path) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("文物主体")
-                            .font(.headline)
-
-                        // 使用主体提取视图，放大填充整个区域
-                        Group {
-                            if #available(iOS 16.0, *) {
-                                ArtifactSubjectView(originalImage: image)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: UIScreen.main.bounds.width * 1.2) // 更大的高度
-                                    .background(Color.white.opacity(0.5))
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                            } else {
-                                // iOS 16 以下降级方案
-                                Image(uiImage: image)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .rotationEffect(.degrees(90))
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: UIScreen.main.bounds.width * 1.2)
-                                    .clipped()
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                            }
-                        }
-                        .accessibilityLabel("文物主体照片")
-                    }
-                }
-
-                // 手语视频 - 直接加载，不做延迟
-                // 放大 WebView 使数字人占满显示区域（16:9 宽高比，更紧凑）
-                SignVideoPlayer(
-                    filename: exhibit.media.signVideoFilename,
-                    textForTranslation: viewModel.generatedEasyText ?? exhibit.easyText,
-                    coordinator: avatarCoordinator
-                )
-                    .frame(maxWidth: .infinity)
-                    .frame(height: UIScreen.main.bounds.width * 1.1) // 固定高度，略大于宽度
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .accessibilityLabel("手语解说视频")
-                    .accessibilityHint("展品的手语解说")
-                    .onChange(of: avatarCoordinator.isLoaded) { _, isLoaded in
-                        // 数字人加载完成后，自动发送讲解脚本
-                        if isLoaded {
-                            let text = viewModel.generatedEasyText ?? exhibit.easyText
-                            if !text.isEmpty {
-                                avatarCoordinator.sendText(text)
-                            }
-                        }
-                    }
-                    .onChange(of: viewModel.generatedEasyText) { _, newValue in
-                        // 当生成的易读版文本更新时，自动发送到数字人进行翻译
-                        if let text = newValue, !text.isEmpty, avatarCoordinator.isLoaded {
-                            avatarCoordinator.sendText(text)
-                        }
-                    }
-
-                CaptionView(
-                    captions: CaptionService().loadCaptions(filename: exhibit.media.captionsVttOrSrtFilename),
-                    size: captionSize,
-                    backgroundEnabled: captionBackgroundEnabled,
-                    reduceTransparency: reduceTransparency
-                )
-                .accessibilityLabel("字幕")
-                .accessibilityHint("展品解说字幕")
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("易读版")
-                        .font(.headline)
-                    Text(viewModel.generatedEasyText ?? exhibit.easyText)
-                        .font(.body)
-                }
-
-                DisclosureGroup(isExpanded: $viewModel.showDetailText) {
-                    Text(viewModel.generatedDetailText ?? exhibit.detailText)
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                } label: {
-                    Text("详细信息")
-                        .font(.headline)
-                }
-                .accessibilityLabel("详细信息")
-                .accessibilityHint("展开查看完整解说")
-
-                GlossaryChips(items: exhibit.glossary)
-
-                if let location = appState.locationRecord(for: exhibit.id) {
-                    Button {
-                        let coordinate = CLLocationCoordinate2D(
-                            latitude: location.latitude,
-                            longitude: location.longitude
-                        )
-                        let placemark = MKPlacemark(coordinate: coordinate)
-                        let mapItem = MKMapItem(placemark: placemark)
-                        mapItem.name = location.displayName
-                        mapItem.openInMaps()
-                    } label: {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("拍摄位置")
-                                .font(.headline)
-                            Text(location.displayName)
-                                .font(.body)
-                            Text(String(format: "%.5f, %.5f", location.latitude, location.longitude))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(12)
-                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("拍摄位置")
-                    .accessibilityHint("打开地图查看位置并导航")
-                }
-
-                HStack(spacing: 12) {
-                    Button {
-                        viewModel.toggleFavorite(exhibitId: exhibit.id)
-                    } label: {
-                        Label(viewModel.isFavorite ? "已收藏" : "收藏", systemImage: viewModel.isFavorite ? "heart.fill" : "heart")
-                    }
-                    .buttonStyle(.bordered)
-                    .accessibilityLabel(viewModel.isFavorite ? "已收藏" : "收藏")
-                    .accessibilityHint("将展品加入收藏")
-
-                    Button {
-                        Haptics.lightImpact()
-                    } label: {
-                        Label("分享", systemImage: "square.and.arrow.up")
-                    }
-                    .buttonStyle(.bordered)
-                    .accessibilityLabel("分享")
-                    .accessibilityHint("分享展品信息")
-                }
-
+            VStack(spacing: 24) {
+                // MARK: - 主体提取照片区域
+                artifactPhotoSection
+                
+                // MARK: - 数字人区域（Liquid Glass 卡片）
+                signLanguageSection
+                
+                // MARK: - 文物信息区域
+                exhibitInfoSection
+                
+                // MARK: - 问答区域
                 AskView(exhibit: exhibit, viewModel: askViewModel, avatarCoordinator: avatarCoordinator)
             }
-            .padding(20)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
         }
-        .navigationTitle(exhibit.title)
+        .background(Color(red: 0.95, green: 0.95, blue: 0.95))
+        .navigationTitle("展品信息")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             viewModel.loadGeneratedNarration(title: exhibit.title)
         }
+    }
+    
+    // MARK: - View Sections
+    
+    @ViewBuilder
+    private var artifactPhotoSection: some View {
+        if let url = appState.artifactPhotoURL(for: exhibit.id),
+           let image = UIImage(contentsOfFile: url.path) {
+            Group {
+                if #available(iOS 16.0, *) {
+                    ArtifactSubjectView(originalImage: image)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 220)
+                } else {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .rotationEffect(.degrees(90))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 220)
+                        .clipped()
+                }
+            }
+            .accessibilityLabel("文物主体照片")
+        }
+    }
+    
+    @ViewBuilder
+    private var signLanguageSection: some View {
+        SignVideoPlayer(
+            filename: exhibit.media.signVideoFilename,
+            textForTranslation: viewModel.generatedEasyText ?? exhibit.easyText,
+            coordinator: avatarCoordinator
+        )
+        .frame(maxWidth: .infinity)
+        .frame(height: 304)
+        .modifier(LiquidGlassCardModifier())
+        .accessibilityLabel("手语解说视频")
+        .accessibilityHint("展品的手语解说")
+        .onChange(of: avatarCoordinator.isLoaded) { _, isLoaded in
+            if isLoaded {
+                let text = viewModel.generatedEasyText ?? exhibit.easyText
+                if !text.isEmpty {
+                    avatarCoordinator.sendText(text)
+                }
+            }
+        }
+        .onChange(of: viewModel.generatedEasyText) { _, newValue in
+            if let text = newValue, !text.isEmpty, avatarCoordinator.isLoaded {
+                avatarCoordinator.sendText(text)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var exhibitInfoSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // 标题行：标题 + 外链 + 收藏
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(exhibit.title)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.primary)
+                    
+                    Text("\(exhibit.id)\n\n\(formattedDate)")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+                
+                HStack(spacing: 16) {
+                    Button {
+                        Haptics.lightImpact()
+                    } label: {
+                        Image(systemName: "arrow.up.right.square")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.primary)
+                    }
+                    .modifier(LiquidGlassButtonModifier())
+                    .accessibilityLabel("外部链接")
+                    
+                    Button {
+                        viewModel.toggleFavorite(exhibitId: exhibit.id)
+                    } label: {
+                        Image(systemName: viewModel.isFavorite ? "star.fill" : "star")
+                            .font(.system(size: 20))
+                            .foregroundStyle(viewModel.isFavorite ? .yellow : .primary)
+                    }
+                    .modifier(LiquidGlassButtonModifier())
+                    .accessibilityLabel(viewModel.isFavorite ? "已收藏" : "收藏")
+                }
+            }
+            
+            // 标签行
+            HStack(spacing: 4) {
+                ForEach(exhibitTags, id: \.self) { tag in
+                    TagChip(text: tag)
+                }
+            }
+            .padding(.top, 6)
+            
+            // 详细按钮
+            Button {
+                viewModel.showDetailText.toggle()
+            } label: {
+                HStack(spacing: 2) {
+                    Image(systemName: viewModel.showDetailText ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 10))
+                    Text("详细")
+                        .font(.system(size: 10))
+                }
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
+                .modifier(LiquidGlassChipModifier())
+            }
+            .padding(.top, 6)
+            
+            // 描述文字
+            Text(viewModel.generatedDetailText ?? exhibit.detailText)
+                .font(.system(size: 12))
+                .foregroundStyle(.primary)
+                .lineSpacing(4)
+                .padding(.top, 8)
+                .fixedSize(horizontal: false, vertical: true)
+            
+            // 展开的详细信息
+            if viewModel.showDetailText {
+                expandedDetailSection
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+    
+    @ViewBuilder
+    private var expandedDetailSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Divider()
+            
+            // 易读版
+            VStack(alignment: .leading, spacing: 4) {
+                Text("易读版")
+                    .font(.system(size: 12, weight: .semibold))
+                Text(viewModel.generatedEasyText ?? exhibit.easyText)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            
+            // 术语卡片
+            if !exhibit.glossary.isEmpty {
+                GlossaryChips(items: exhibit.glossary)
+            }
+            
+            // 拍摄位置
+            if let location = appState.locationRecord(for: exhibit.id) {
+                Button {
+                    let coordinate = CLLocationCoordinate2D(
+                        latitude: location.latitude,
+                        longitude: location.longitude
+                    )
+                    let placemark = MKPlacemark(coordinate: coordinate)
+                    let mapItem = MKMapItem(placemark: placemark)
+                    mapItem.name = location.displayName
+                    mapItem.openInMaps()
+                } label: {
+                    HStack {
+                        Image(systemName: "location.fill")
+                            .font(.system(size: 12))
+                        Text(location.displayName)
+                            .font(.system(size: 12))
+                    }
+                    .foregroundStyle(.blue)
+                }
+                .accessibilityLabel("拍摄位置")
+            }
+        }
+        .padding(.top, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy.M.dd"
+        return formatter.string(from: Date())
+    }
+    
+    private var exhibitTags: [String] {
+        // 从术语表中提取标签，或使用默认标签
+        var tags: [String] = []
+        if !exhibit.glossary.isEmpty {
+            tags = exhibit.glossary.prefix(3).map { $0.term }
+        }
+        if tags.isEmpty {
+            tags = ["文物", "博物馆"]
+        }
+        return tags
     }
 
     private var captionSize: CaptionSize {
@@ -310,26 +388,126 @@ struct ExhibitDetailView: View {
     }
 }
 
+// MARK: - iOS 26 Liquid Glass Modifiers
+
+/// Liquid Glass 卡片修饰符 - iOS 26+ 使用玻璃效果，低版本使用白色背景
+private struct LiquidGlassCardModifier: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content
+                .glassEffect(in: .rect(cornerRadius: 20))
+        } else {
+            content
+                .background(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        }
+    }
+}
+
+/// Liquid Glass 按钮修饰符 - iOS 26+ 使用玻璃效果
+private struct LiquidGlassButtonModifier: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content
+                .buttonStyle(.glass)
+        } else {
+            content
+                .buttonStyle(.plain)
+        }
+    }
+}
+
+/// Liquid Glass 标签修饰符 - iOS 26+ 使用玻璃效果，低版本使用灰色背景
+private struct LiquidGlassChipModifier: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content
+                .glassEffect(in: .capsule)
+        } else {
+            content
+                .background(Color(red: 0.80, green: 0.80, blue: 0.80))
+                .clipShape(Capsule())
+        }
+    }
+}
+
+/// 标签芯片组件 - 支持 Liquid Glass
+private struct TagChip: View {
+    let text: String
+    
+    var body: some View {
+        Text(text)
+            .font(.system(size: 10))
+            .foregroundStyle(.primary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
+            .modifier(TagChipBackgroundModifier())
+    }
+}
+
+private struct TagChipBackgroundModifier: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content
+                .glassEffect(in: .capsule)
+        } else {
+            content
+                .background(.white)
+                .clipShape(Capsule())
+        }
+    }
+}
+
+// MARK: - GlossaryChips
+
 private struct GlossaryChips: View {
     let items: [GlossaryItem]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("术语卡片")
-                .font(.headline)
+                .font(.system(size: 12, weight: .semibold))
             FlexibleTagLayout(items) { item in
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(item.term)
-                        .font(.subheadline.weight(.semibold))
-                    Text(item.def)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(10)
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                .accessibilityLabel(item.term)
-                .accessibilityHint(item.def)
+                GlossaryChipItem(item: item)
             }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct GlossaryChipItem: View {
+    let item: GlossaryItem
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(item.term)
+                .font(.system(size: 11, weight: .semibold))
+            Text(item.def)
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+                .lineLimit(3)
+        }
+        .padding(8)
+        .frame(maxWidth: 150)
+        .modifier(GlossaryChipBackgroundModifier())
+        .accessibilityLabel(item.term)
+        .accessibilityHint(item.def)
+    }
+}
+
+private struct GlossaryChipBackgroundModifier: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content
+                .glassEffect(in: .rect(cornerRadius: 12))
+        } else {
+            content
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
         }
     }
 }
