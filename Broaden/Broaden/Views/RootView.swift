@@ -8,42 +8,32 @@ enum AppTab: CaseIterable {
 
 struct RootView: View {
     @State private var selectedTab: AppTab = .home
+    @EnvironmentObject private var appState: AppState
 
     var body: some View {
-        ZStack {
-            switch selectedTab {
-            case .home:
-                NavigationStack {
-                    HomeView(selectedTab: $selectedTab)
-                }
-            case .camera:
-                NavigationStack {
-                    CameraGuideView()
-                }
-            case .profile:
-                NavigationStack {
-                    ProfileView()
-                }
+        NavigationStack {
+            TabView(selection: $selectedTab) {
+                HomeView()
+                    .tabItem {
+                        Label("首页", systemImage: "house.fill")
+                    }
+                    .tag(AppTab.home)
+
+                CameraGuideView(selectedTab: $selectedTab)
+                    .tabItem {
+                        Label("相机", systemImage: "camera.fill")
+                    }
+                    .tag(AppTab.camera)
+
+                SettingsView()
+                    .tabItem {
+                        Label("设置", systemImage: "gearshape.fill")
+                    }
+                    .tag(AppTab.profile)
+            }
+            .navigationDestination(item: $appState.pendingExhibitForDetail) { (exhibit: Exhibit) in
+                ExhibitDetailView(exhibit: exhibit)
             }
         }
-    }
-}
-
-// MARK: - Profile View (Placeholder)
-struct ProfileView: View {
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                Text("我的")
-                    .font(.title.bold())
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-
-                Text("用户资料页面即将推出")
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .navigationTitle("")
-        .navigationBarHidden(true)
     }
 }

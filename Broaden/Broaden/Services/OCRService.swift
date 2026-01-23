@@ -59,51 +59,10 @@ struct LocalOCRService: OCRServicing {
     }
 }
 
+/// 已废弃的通义千问 OCR（保留用于兼容性，现在使用智谱）
 struct QwenOCRService: OCRServicing {
     func recognize(imageData: Data) async throws -> OCRResult? {
-        guard let apiKey = Secrets.shared.qwenApiKey else {
-            return nil
-        }
-
-        let baseURL = Secrets.shared.qwenBaseURL
-        let model = Secrets.shared.qwenOCRModel
-        let endpoint = baseURL.appendingPathComponent("services/aigc/multimodal-generation/generation")
-
-        let imageBase64 = imageData.base64EncodedString()
-        let payload: [String: Any] = [
-            "model": model,
-            "input": [
-                "messages": [
-                    [
-                        "role": "user",
-                        "content": [
-                            ["image": "data:image/jpeg;base64,\(imageBase64)"],
-                            ["text": "请识别图片中的文字，只返回文字本身。"]
-                        ]
-                    ]
-                ]
-            ]
-        ]
-
-        var request = URLRequest(url: endpoint)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            return nil
-        }
-
-        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-        let output = json?["output"] as? [String: Any]
-        let choices = output?["choices"] as? [[String: Any]]
-        let message = choices?.first?["message"] as? [String: Any]
-        let content = message?["content"] as? [String: Any]
-        let text = content?["text"] as? String ?? ""
-
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? nil : OCRResult(text: trimmed)
+        // 返回 nil，使用本地 OCR 作为回退
+        return nil
     }
 }

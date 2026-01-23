@@ -7,6 +7,7 @@ struct AskView: View {
     @ObservedObject var avatarCoordinator: AvatarCoordinator
 
     @State private var inputText = ""
+    @FocusState private var isInputFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -16,12 +17,18 @@ struct AskView: View {
             VStack(alignment: .leading, spacing: 8) {
                 TextField("输入问题", text: $inputText, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
+                    .focused($isInputFocused)
+                    .submitLabel(.send)
+                    .onSubmit {
+                        submitQuestion()
+                    }
                     .accessibilityLabel("追问输入框")
                     .accessibilityHint("输入想了解的问题")
 
                 HStack(spacing: 8) {
                     ForEach(quickQuestions, id: \.self) { question in
                         Button(question) {
+                            isInputFocused = false
                             viewModel.quickAsk(exhibitId: exhibit.id, question: question, contextText: contextText)
                         }
                         .buttonStyle(.bordered)
@@ -32,8 +39,7 @@ struct AskView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 Button {
-                    viewModel.ask(exhibitId: exhibit.id, question: inputText, contextText: contextText)
-                    inputText = ""
+                    submitQuestion()
                 } label: {
                     Label("提交追问", systemImage: "paperplane")
                         .frame(maxWidth: .infinity)
@@ -81,6 +87,17 @@ struct AskView: View {
     private var quickQuestions: [String] {
         ["为什么重要", "制作或修复", "术语解释"]
     }
+    
+    private func submitQuestion() {
+        guard !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        
+        // 先隐藏键盘
+        isInputFocused = false
+        
+        // 提交问题
+        viewModel.ask(exhibitId: exhibit.id, question: inputText, contextText: contextText)
+        inputText = ""
+    }
 }
 
 private struct ChatBubble: View {
@@ -106,7 +123,6 @@ private struct AnswerCardView: View {
     /// 手语数字人协调器 - 用于发送手语脚本
     @ObservedObject var avatarCoordinator: AvatarCoordinator
     @State private var selectedLayer = 0
-    @State private var hasSentSignScript = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -119,9 +135,9 @@ private struct AnswerCardView: View {
             .accessibilityLabel("回答层级")
             .accessibilityHint("切换简版、详版或手语脚本")
             .onChange(of: selectedLayer) { _, newValue in
-                // 当用户切换到手语脚本 tab 时，如果还没发送过，则发送
-                if newValue == 2 && !hasSentSignScript && !response.signScript.isEmpty && avatarCoordinator.isLoaded {
-                    sendSignScript()
+                // 当用户切换到手语脚本时，自动发送到数字人进行翻译
+                if newValue == 2 && !response.signScript.isEmpty && avatarCoordinator.isLoaded {
+                    avatarCoordinator.sendText(response.signScript)
                 }
             }
 
@@ -140,14 +156,14 @@ private struct AnswerCardView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(response.signScript)
                             .font(.body)
-
+                        
                         // 手语脚本状态指示
                         if avatarCoordinator.isLoaded {
                             HStack(spacing: 4) {
                                 Circle()
                                     .fill(.green)
                                     .frame(width: 8, height: 8)
-                                Text(hasSentSignScript ? "已发送到数字人" : "数字人已就绪")
+                                Text("数字人已就绪")
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                             }
@@ -167,27 +183,17 @@ private struct AnswerCardView: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
         .accessibilityLabel("回答")
         .onAppear {
-            // 回答卡片出现时，自动发送手语脚本到数字人
-            sendSignScriptIfNeeded()
-        }
-        .onChange(of: avatarCoordinator.isLoaded) { _, isLoaded in
-            // 数字人就绪时，发送手语脚本
-            if isLoaded {
-                sendSignScriptIfNeeded()
+            // 当新回答出现时，自动发送手语脚本到数字人
+            if !response.signScript.isEmpty && avatarCoordinator.isLoaded {
+                avatarCoordinator.sendText(response.signScript)
             }
         }
-    }
-
-    private func sendSignScriptIfNeeded() {
-        if !hasSentSignScript && !response.signScript.isEmpty && avatarCoordinator.isLoaded {
-            sendSignScript()
+        .onChange(of: avatarCoordinator.isLoaded) { _, isLoaded in
+            // 如果数字人刚加载完成，发送手语脚本
+            if isLoaded && !response.signScript.isEmpty {
+                avatarCoordinator.sendText(response.signScript)
+            }
         }
-    }
-
-    private func sendSignScript() {
-        print("[AnswerCardView] 📤 发送追问手语脚本: \(response.signScript.prefix(30))...")
-        avatarCoordinator.sendText(response.signScript)
-        hasSentSignScript = true
     }
 
     private var confidenceText: String {

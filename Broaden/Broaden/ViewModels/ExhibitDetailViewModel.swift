@@ -13,10 +13,10 @@ final class ExhibitDetailViewModel: ObservableObject {
     init(exhibitId: String, narrationService: ExhibitNarrationServicing? = nil) {
         if let narrationService {
             self.narrationService = narrationService
-        } else if Secrets.shared.deepseekApiKey != nil {
-            self.narrationService = DeepSeekNarrationService()
+        } else if Secrets.shared.isValidZhipuKey {
+            self.narrationService = ZhipuNarrationService()
         } else {
-            self.narrationService = DeepSeekNarrationService()
+            self.narrationService = ExhibitNarrationService()
         }
         loadFavorite(exhibitId: exhibitId)
     }
@@ -43,7 +43,7 @@ final class ExhibitDetailViewModel: ObservableObject {
     }
 
     func loadGeneratedNarration(title: String) {
-        guard Secrets.shared.deepseekApiKey != nil else { return }
+        guard Secrets.shared.isValidZhipuKey else { return }
         Task {
             do {
                 if let narration = try await narrationService.generate(title: title) {
