@@ -42,13 +42,10 @@ struct SettingsView: View {
                 }
                 .padding(.top, 20)
             }
+            .scrollDismissesKeyboard(.interactively)
         }
         .navigationTitle("设置")
         .navigationBarTitleDisplayMode(.inline)
-        .onTapGesture {
-            // 点击空白区域隐藏键盘
-            hideKeyboard()
-        }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
