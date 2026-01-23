@@ -7,6 +7,7 @@ struct AskView: View {
     @ObservedObject var avatarCoordinator: AvatarCoordinator
 
     @State private var inputText = ""
+    @FocusState private var isInputFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -16,12 +17,18 @@ struct AskView: View {
             VStack(alignment: .leading, spacing: 8) {
                 TextField("输入问题", text: $inputText, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
+                    .focused($isInputFocused)
+                    .submitLabel(.send)
+                    .onSubmit {
+                        submitQuestion()
+                    }
                     .accessibilityLabel("追问输入框")
                     .accessibilityHint("输入想了解的问题")
 
                 HStack(spacing: 8) {
                     ForEach(quickQuestions, id: \.self) { question in
                         Button(question) {
+                            isInputFocused = false
                             viewModel.quickAsk(exhibitId: exhibit.id, question: question, contextText: contextText)
                         }
                         .buttonStyle(.bordered)
@@ -32,8 +39,7 @@ struct AskView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 Button {
-                    viewModel.ask(exhibitId: exhibit.id, question: inputText, contextText: contextText)
-                    inputText = ""
+                    submitQuestion()
                 } label: {
                     Label("提交追问", systemImage: "paperplane")
                         .frame(maxWidth: .infinity)
@@ -80,6 +86,17 @@ struct AskView: View {
 
     private var quickQuestions: [String] {
         ["为什么重要", "制作或修复", "术语解释"]
+    }
+    
+    private func submitQuestion() {
+        guard !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        
+        // 先隐藏键盘
+        isInputFocused = false
+        
+        // 提交问题
+        viewModel.ask(exhibitId: exhibit.id, question: inputText, contextText: contextText)
+        inputText = ""
     }
 }
 
