@@ -198,11 +198,8 @@ struct CameraGuideView: View {
 
     private var statusOverlay: some View {
         VStack(spacing: 16) {
-            // 步骤指示器
-            stepIndicator
-            
-            // 状态提示
             if case .failed(let message) = viewModel.recognitionState {
+                // 失败状态：只显示错误信息
                 VStack(spacing: 10) {
                     Label(message, systemImage: "exclamationmark.triangle")
                         .font(.callout)
@@ -223,6 +220,9 @@ struct CameraGuideView: View {
                     .accessibilityLabel("重试识别")
                 }
             } else {
+                // 正常状态：显示步骤指示器和提示
+                stepIndicator
+                
                 VStack(spacing: 6) {
                     Text(stageTitle)
                         .font(.headline.weight(.semibold))
