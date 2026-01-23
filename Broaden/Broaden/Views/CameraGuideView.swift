@@ -491,6 +491,7 @@ struct CameraGuideView: View {
     /// 跳过展牌识别，进入直接拍摄模式
     private func skipToDirectCapture() {
         isDirectCaptureMode = true
+        viewModel.enterDirectCaptureMode()  // 取消失败提示定时器
         Haptics.lightImpact()
     }
     

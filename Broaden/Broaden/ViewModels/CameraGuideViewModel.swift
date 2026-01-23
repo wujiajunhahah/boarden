@@ -187,6 +187,13 @@ final class CameraGuideViewModel: ObservableObject {
         scheduleFailureHint()
     }
     
+    /// 进入直接拍摄模式，取消失败提示定时器
+    func enterDirectCaptureMode() {
+        failureTask?.cancel()
+        failureTask = nil
+        recognitionState = .idle
+    }
+    
     /// 直接从图片生成展品信息（跳过展牌识别）
     func generateExhibitFromImage(_ data: Data) async throws -> Exhibit? {
         // 使用智谱视觉模型识别图片中的物体
