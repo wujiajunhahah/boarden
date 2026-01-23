@@ -37,8 +37,7 @@ struct ZhipuAskService: AskServicing {
         }
 
         let system = """
-        你是博物馆无障碍导览助手。只能根据提供的展品上下文回答。
-        若上下文不足，请明确说明"馆方资料未包含该细节"，不要编造。
+        你是博物馆无障碍导览助手。结合提供的展品上下文来回答。
         必须输出严格的 JSON 格式，不要有任何其他文字。
         JSON 字段：answer_simple, answer_detail, sign_script, citations, confidence
         confidence 只能是 high/medium/low
