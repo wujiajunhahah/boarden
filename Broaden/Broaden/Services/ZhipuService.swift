@@ -82,6 +82,7 @@ struct ZhipuOCRService: OCRServicing {
 /// 智谱对话服务
 protocol ZhipuChatServicing: Sendable {
     func generate(system: String, user: String) async throws -> String?
+    func generateWithImage(system: String, user: String, imageBase64: String) async throws -> String?
 }
 
 struct ZhipuChatService: ZhipuChatServicing {
@@ -134,6 +135,65 @@ struct ZhipuChatService: ZhipuChatServicing {
             return trimmed.isEmpty ? nil : trimmed
         } catch {
             print("[ZhipuChat] 请求异常: \(error)")
+            return nil
+        }
+    }
+    
+    /// 带图片的对话生成
+    func generateWithImage(system: String, user: String, imageBase64: String) async throws -> String? {
+        guard let apiKey = Secrets.shared.zhipuApiKey else {
+            return nil
+        }
+
+        let endpoint = Secrets.shared.zhipuBaseURL.appendingPathComponent("chat/completions")
+        let model = Secrets.shared.zhipuOCRModel  // 使用视觉模型
+
+        let payload: [String: Any] = [
+            "model": model,
+            "messages": [
+                ["role": "system", "content": system],
+                [
+                    "role": "user",
+                    "content": [
+                        ["type": "image_url", "image_url": ["url": "data:image/jpeg;base64,\(imageBase64)"]],
+                        ["type": "text", "text": user]
+                    ]
+                ]
+            ],
+            "temperature": 0.4
+        ]
+
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                print("[ZhipuChat+Image] 响应: \(json)")
+            }
+
+            guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+                let errorStr = String(data: data, encoding: .utf8) ?? "Unknown"
+                print("[ZhipuChat+Image] 错误响应: \(errorStr)")
+                return nil
+            }
+
+            guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                return nil
+            }
+
+            let choices = json["choices"] as? [[String: Any]]
+            let message = choices?.first?["message"] as? [String: Any]
+            let text = message?["content"] as? String ?? ""
+
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : trimmed
+        } catch {
+            print("[ZhipuChat+Image] 请求异常: \(error)")
             return nil
         }
     }

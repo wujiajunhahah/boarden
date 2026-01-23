@@ -24,7 +24,8 @@ final class AskViewModel: ObservableObject {
         guard !trimmed.isEmpty else { return }
 
         let userMessage = ConversationMessage(isUser: true, text: trimmed, response: nil)
-        messages.append(userMessage)
+        // 新消息插入到最前面，保持新的问答在上方
+        messages.insert(userMessage, at: 0)
         isLoading = true
         errorMessage = nil
         Haptics.lightImpact()
@@ -53,7 +54,8 @@ final class AskViewModel: ObservableObject {
 
     private func appendResponse(_ response: AskResponse) {
         let message = ConversationMessage(isUser: false, text: response.answerSimple, response: response)
-        messages.append(message)
+        // 回答插入到问题后面（index 1），保持问答配对
+        messages.insert(message, at: 1)
         isLoading = false
     }
 

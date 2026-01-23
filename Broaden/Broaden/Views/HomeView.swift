@@ -103,7 +103,7 @@ struct HomeView: View {
                 Image(systemName: "mappin")
                     .font(.system(size: 14))
                     .foregroundStyle(Color.secondaryText)
-                Text("BeiJing")
+                Text("Beijing")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(Color.secondaryText)
             }

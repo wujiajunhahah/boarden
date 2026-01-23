@@ -162,11 +162,14 @@ struct ExhibitDetailView: View {
                 // MARK: - 主体提取照片区域
                 artifactPhotoSection
                 
-                // MARK: - 数字人区域（Liquid Glass 卡片）
-                signLanguageSection
-                
                 // MARK: - 文物信息区域
                 exhibitInfoSection
+                
+                // MARK: - 拍摄位置
+                locationSection
+                
+                // MARK: - 数字人区域（Liquid Glass 卡片）
+                signLanguageSection
                 
                 // MARK: - 问答区域
                 AskView(exhibit: exhibit, viewModel: askViewModel, avatarCoordinator: avatarCoordinator)
@@ -282,7 +285,22 @@ struct ExhibitDetailView: View {
             }
             .padding(.top, 6)
             
-            // 详细按钮
+            // 描述文字
+            if !detailTextContent.isEmpty {
+                Text(detailTextContent)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.primary)
+                    .lineSpacing(4)
+                    .padding(.top, 8)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("暂无详细介绍")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 8)
+            }
+            
+            // 详细按钮（展开易读版和术语卡片）
             Button {
                 viewModel.showDetailText.toggle()
             } label: {
@@ -299,22 +317,7 @@ struct ExhibitDetailView: View {
             }
             .padding(.top, 6)
             
-            // 描述文字
-            if !detailTextContent.isEmpty {
-                Text(detailTextContent)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.primary)
-                    .lineSpacing(4)
-                    .padding(.top, 8)
-                    .fixedSize(horizontal: false, vertical: true)
-            } else {
-                Text("暂无详细介绍")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 8)
-            }
-            
-            // 展开的详细信息
+            // 展开的详细信息（易读版、术语卡片）
             if viewModel.showDetailText {
                 expandedDetailSection
             }
@@ -378,9 +381,18 @@ struct ExhibitDetailView: View {
                     avatarCoordinator: avatarCoordinator
                 )
             }
-            
-            // 拍摄位置
-            if let location = appState.locationRecord(for: exhibit.id) {
+        }
+        .padding(.top, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    @ViewBuilder
+    private var locationSection: some View {
+        if let location = appState.locationRecord(for: exhibit.id) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("拍摄位置")
+                    .font(.system(size: 12, weight: .semibold))
+                
                 Button {
                     let coordinate = CLLocationCoordinate2D(
                         latitude: location.latitude,
@@ -393,17 +405,22 @@ struct ExhibitDetailView: View {
                 } label: {
                     HStack {
                         Image(systemName: "location.fill")
-                            .font(.system(size: 12))
+                            .font(.system(size: 14))
                         Text(location.displayName)
+                            .font(.system(size: 13))
+                        Spacer()
+                        Image(systemName: "arrow.up.right")
                             .font(.system(size: 12))
                     }
                     .foregroundStyle(.blue)
+                    .padding(12)
+                    .frame(maxWidth: .infinity)
+                    .modifier(LiquidGlassCardModifier())
                 }
-                .accessibilityLabel("拍摄位置")
+                .accessibilityLabel("在地图中打开 \(location.displayName)")
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.top, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     // MARK: - Computed Properties
