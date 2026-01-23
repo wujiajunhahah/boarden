@@ -138,35 +138,3 @@ struct ZhipuChatService: ZhipuChatServicing {
         }
     }
 }
-
-/// 智谱展品解说服务
-struct ZhipuNarrationService: ExhibitNarrationServicing {
-    private let service: ZhipuChatServicing = ZhipuChatService()
-
-    func generate(title: String) async throws -> ExhibitNarration? {
-        let system = "你是博物馆讲解员，输出中文、克制、清晰。"
-        let user = "请为展品《\(title)》生成：1) 易读版 3-5 句 2) 详细版 6-10 句。用换行分隔，格式：易读版：... 详细版：..."
-
-        guard let response = try await service.generate(system: system, user: user) else {
-            return nil
-        }
-
-        let easy = extract(response, keyword: "易读版") ?? ""
-        let detail = extract(response, keyword: "详细版") ?? ""
-
-        if easy.isEmpty && detail.isEmpty {
-            return nil
-        }
-
-        return ExhibitNarration(easyText: easy.isEmpty ? response : easy, detailText: detail.isEmpty ? response : detail)
-    }
-
-    private func extract(_ text: String, keyword: String) -> String? {
-        guard let range = text.range(of: keyword) else { return nil }
-        let after = text[range.upperBound...]
-        let lines = after.split(separator: "\n").map { String($0).trimmingCharacters(in: .whitespaces) }
-        guard let firstLine = lines.first, !firstLine.isEmpty else { return nil }
-        return firstLine
-    }
-}
-
