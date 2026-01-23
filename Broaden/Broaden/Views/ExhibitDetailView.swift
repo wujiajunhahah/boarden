@@ -46,9 +46,20 @@ struct ExhibitDetailView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .accessibilityLabel("手语解说视频")
                     .accessibilityHint("展品的手语解说")
+                    // 数字人就绪时自动发送易读版文本
+                    .onChange(of: avatarCoordinator.isLoaded) { _, isLoaded in
+                        if isLoaded {
+                            let easyText = viewModel.generatedEasyText ?? exhibit.easyText
+                            if !easyText.isEmpty {
+                                print("[ExhibitDetailView] 数字人就绪，发送易读版: \(easyText.prefix(30))...")
+                                avatarCoordinator.sendText(easyText)
+                            }
+                        }
+                    }
+                    // 生成的易读版更新时也重新发送
                     .onChange(of: viewModel.generatedEasyText) { _, newValue in
-                        // 当生成的易读版文本更新时，自动发送到数字人进行翻译
-                        if let text = newValue, !text.isEmpty, avatarCoordinator.isLoaded {
+                        if avatarCoordinator.isLoaded, let text = newValue, !text.isEmpty {
+                            print("[ExhibitDetailView] 易读版更新，重新发送")
                             avatarCoordinator.sendText(text)
                         }
                     }

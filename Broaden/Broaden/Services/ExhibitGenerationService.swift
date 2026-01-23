@@ -19,7 +19,7 @@ enum ExhibitGenerationError: Error, LocalizedError, Sendable {
 }
 
 struct ExhibitGenerationService: ExhibitGenerating {
-    private let service: DeepSeekServicing = DeepSeekService()
+    private let service: DeepSeekServicing = QwenService()
 
     func generate(from ocrText: String) async throws -> Exhibit? {
         let cleaned = ocrText.trimmingCharacters(in: .whitespacesAndNewlines)

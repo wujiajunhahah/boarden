@@ -10,7 +10,7 @@ protocol ExhibitNarrationServicing: Sendable {
 }
 
 struct DeepSeekNarrationService: ExhibitNarrationServicing {
-    private let service: DeepSeekServicing = DeepSeekService()
+    private let service: DeepSeekServicing = QwenService()
 
     func generate(title: String) async throws -> ExhibitNarration? {
         let system = "你是博物馆讲解员，输出中文、克制、清晰。"
