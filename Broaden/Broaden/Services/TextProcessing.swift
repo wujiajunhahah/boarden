@@ -8,7 +8,7 @@ struct OCRSummary: Sendable, Hashable {
 }
 
 struct TextProcessing {
-    static func summarize(_ raw: String) -> OCRSummary {
+    static func summarize(_ raw: String) -> OCRSummary { 
         let lines = raw
             .split(whereSeparator: { $0 == "\n" || $0 == "\r" })
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
