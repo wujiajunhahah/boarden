@@ -177,7 +177,7 @@ struct HomeView: View {
                 }
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
-                .frame(height: CGFloat(recentExhibits.count) * 100)  // 根据卡片数量动态调整高度
+                .frame(height: CGFloat(recentExhibits.count) * 132)  // 卡片高度120 + 上下间距12
             }
         }
     }
