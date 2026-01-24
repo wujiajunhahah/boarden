@@ -13,10 +13,15 @@ final class CameraSessionController: NSObject, @unchecked Sendable {
 
     var enableTextRecognition = false
     private let photoOutput = AVCapturePhotoOutput()
+    private var videoDevice: AVCaptureDevice?
 
     private var lastDetectionTime: Date = .distantPast
     private let detectionCooldown: TimeInterval = 1.5
     private var isProcessingText = false
+    
+    // 缩放相关
+    private var currentZoomFactor: CGFloat = 1.0
+    private var lastZoomFactor: CGFloat = 1.0
 
     func configure() {
         sessionQueue.async {
@@ -30,6 +35,7 @@ final class CameraSessionController: NSObject, @unchecked Sendable {
                 return
             }
             self.session.addInput(input)
+            self.videoDevice = device
 
             let metadataOutput = AVCaptureMetadataOutput()
             if self.session.canAddOutput(metadataOutput) {
@@ -50,6 +56,60 @@ final class CameraSessionController: NSObject, @unchecked Sendable {
             }
 
             self.session.commitConfiguration()
+        }
+    }
+    
+    // MARK: - Zoom Control
+    
+    /// 获取最大缩放倍数
+    var maxZoomFactor: CGFloat {
+        guard let device = videoDevice else { return 5.0 }
+        return min(device.activeFormat.videoMaxZoomFactor, 10.0)
+    }
+    
+    /// 获取最小缩放倍数
+    var minZoomFactor: CGFloat {
+        return 1.0
+    }
+    
+    /// 开始缩放手势
+    func beginZoom() {
+        lastZoomFactor = currentZoomFactor
+    }
+    
+    /// 更新缩放倍数
+    func updateZoom(scale: CGFloat) {
+        guard let device = videoDevice else { return }
+        
+        let newZoomFactor = lastZoomFactor * scale
+        let clampedZoom = max(minZoomFactor, min(newZoomFactor, maxZoomFactor))
+        
+        sessionQueue.async {
+            do {
+                try device.lockForConfiguration()
+                device.videoZoomFactor = clampedZoom
+                device.unlockForConfiguration()
+                self.currentZoomFactor = clampedZoom
+            } catch {
+                print("[Camera] 缩放失败: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    /// 重置缩放
+    func resetZoom() {
+        guard let device = videoDevice else { return }
+        
+        sessionQueue.async {
+            do {
+                try device.lockForConfiguration()
+                device.videoZoomFactor = 1.0
+                device.unlockForConfiguration()
+                self.currentZoomFactor = 1.0
+                self.lastZoomFactor = 1.0
+            } catch {
+                print("[Camera] 重置缩放失败: \(error.localizedDescription)")
+            }
         }
     }
 

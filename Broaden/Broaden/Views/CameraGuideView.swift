@@ -23,10 +23,10 @@ struct CameraGuideView: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            CameraPreview(session: cameraController.session)
+            CameraPreview(session: cameraController.session, cameraController: cameraController)
                 .ignoresSafeArea()
                 .accessibilityLabel("相机预览")
-                .accessibilityHint("对准展品或展牌")
+                .accessibilityHint("对准展品或展牌，双指缩放调整焦距")
 
             // 扫描框
             scanFrame
