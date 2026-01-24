@@ -8,7 +8,7 @@ struct CameraGuideView: View {
 
     @EnvironmentObject private var appState: AppState
     @StateObject private var viewModel = CameraGuideViewModel()
-    @StateObject private var cameraController = CameraSessionController()
+    @State private var cameraController = CameraSessionController()
     @State private var showPermissionAlert = false
     @State private var lastCapturedPreview: UIImage?
     @State private var subjectService = SubjectMaskingService()
