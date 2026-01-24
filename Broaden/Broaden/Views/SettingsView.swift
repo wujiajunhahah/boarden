@@ -17,27 +17,27 @@ struct SettingsView: View {
         ZStack {
             // 背景
             backgroundView
-            
+
             ScrollView {
                 VStack(spacing: 20) {
                     // 用户资料卡片
                     profileCard
-                    
+
                     // 偏好设置
                     Text("偏好设置")
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(Color.primaryText)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 20)
-                    
+
                     preferencesCard
-                    
+
                     // 其他
                     otherCard
-                    
+
                     // 数据同步
                     syncCard
-                    
+
                     Spacer(minLength: 100)
                 }
                 .padding(.top, 20)
@@ -56,47 +56,19 @@ struct SettingsView: View {
             }
         }
     }
-    
+
     private func hideKeyboard() {
         isTextFieldFocused = false
         isEditingName = false
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
-    
+
     // MARK: - Background View
-    
+
     private var backgroundView: some View {
-        ZStack {
-            Color(red: 0.98, green: 0.97, blue: 0.95)
-                .ignoresSafeArea()
-            
-            // 装饰性形状
-            GeometryReader { geometry in
-                // 左上蓝色形状
-                SettingsShape1()
-                    .fill(Color(red: 0.75, green: 0.82, blue: 0.92).opacity(0.6))
-                    .frame(width: 150, height: 120)
-                    .offset(x: -30, y: 0)
-                
-                // 右上粉色形状
-                SettingsShape2()
-                    .fill(Color(red: 0.95, green: 0.75, blue: 0.80).opacity(0.5))
-                    .frame(width: 80, height: 80)
-                    .offset(x: geometry.size.width - 60, y: geometry.size.height * 0.35)
-                
-                // 左侧黄色形状
-                SettingsShape3()
-                    .fill(Color(red: 0.98, green: 0.85, blue: 0.45).opacity(0.6))
-                    .frame(width: 100, height: 100)
-                    .offset(x: -20, y: geometry.size.height * 0.45)
-                
-                // 右下绿色形状
-                SettingsShape4()
-                    .fill(Color(red: 0.70, green: 0.78, blue: 0.55).opacity(0.5))
-                    .frame(width: 120, height: 140)
-                    .offset(x: geometry.size.width - 80, y: geometry.size.height * 0.7)
-            }
-        }
+        Image("background_pattern")
+            .resizable()
+            .ignoresSafeArea()
     }
     
     // MARK: - Profile Card

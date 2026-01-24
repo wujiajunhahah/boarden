@@ -28,17 +28,17 @@ struct HomeView: View {
         ZStack {
             // 背景
             backgroundView
-            
+
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
                     // Header Section
                     headerSection
-                        .padding(.top, 20)
-                    
+                        .padding(.top, 60)
+
                     // 展览资讯
                     exhibitionSection
                         .padding(.top, 40)
-                    
+
                     // 历史行程
                     historySection
                         .padding(.top, 24)
@@ -48,43 +48,14 @@ struct HomeView: View {
         }
         .navigationBarHidden(true)
     }
-    
+
     // MARK: - Background View
-    
+
     @ViewBuilder
     private var backgroundView: some View {
-        ZStack {
-            Color.primaryBackground
-                .ignoresSafeArea()
-            
-            // 背景装饰图形
-            GeometryReader { geometry in
-                // 粉色方块 - 左上
-                Rectangle()
-                    .fill(Color.accentPink)
-                    .frame(width: 50, height: 50)
-                    .rotationEffect(.degrees(-15))
-                    .position(x: 30, y: 200)
-                
-                // 黄色形状 - 右上
-                IrregularShape1()
-                    .fill(Color.accentYellow)
-                    .frame(width: 200, height: 250)
-                    .position(x: geometry.size.width - 60, y: 180)
-                
-                // 蓝色云朵形状 - 右上角
-                IrregularShape2()
-                    .fill(Color.accentBlue)
-                    .frame(width: 80, height: 60)
-                    .position(x: geometry.size.width - 40, y: 80)
-                
-                // 绿色形状 - 中间
-                IrregularShape3()
-                    .fill(Color.accentOlive)
-                    .frame(width: 100, height: 100)
-                    .position(x: geometry.size.width / 2 - 20, y: 380)
-            }
-        }
+        Image("background_pattern")
+            .resizable()
+            .ignoresSafeArea()
     }
     
     // MARK: - Header Section
