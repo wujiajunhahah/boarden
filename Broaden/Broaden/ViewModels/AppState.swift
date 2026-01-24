@@ -11,10 +11,16 @@ final class AppState: ObservableObject {
     @Published var pendingExhibitForDetail: Exhibit?
 
     /// 用户添加的展品（持久化存储）
-    private var userExhibits: [Exhibit] = []
+    @Published private(set) var userExhibits: [Exhibit] = []
     
-    /// iCloud Key-Value Store
-    private let iCloudStore = NSUbiquitousKeyValueStore.default
+    /// iCloud Key-Value Store（如果可用）
+    private var iCloudStore: NSUbiquitousKeyValueStore? {
+        // 检查 iCloud 是否可用
+        guard FileManager.default.ubiquityIdentityToken != nil else {
+            return nil
+        }
+        return NSUbiquitousKeyValueStore.default
+    }
 
     private let exhibitService: ExhibitProviding
     private let recentsKey = "recentExhibitIds"
@@ -50,19 +56,24 @@ final class AppState: ObservableObject {
         // 确保 iCloud 目录存在
         setupiCloudDirectories()
         
-        // 监听 iCloud 同步变化
-        NotificationCenter.default.addObserver(
-            forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
-            object: iCloudStore,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in
-                self?.loadFromiCloud()
+        // 监听 iCloud 同步变化（如果 iCloud 可用）
+        if let store = iCloudStore {
+            NotificationCenter.default.addObserver(
+                forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+                object: store,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in
+                    self?.loadFromiCloud()
+                }
             }
+            
+            // 启动 iCloud 同步
+            store.synchronize()
+            print("[AppState] iCloud KVS 可用，已启动同步")
+        } else {
+            print("[AppState] iCloud 不可用，使用本地存储")
         }
-        
-        // 启动 iCloud 同步
-        iCloudStore.synchronize()
         
         // 加载数据（优先从 iCloud）
         loadFromiCloud()
@@ -99,8 +110,8 @@ final class AppState: ObservableObject {
             }
         }
         
-        // 3. 加载 iCloud 数据并合并
-        if let iCloudData = iCloudStore.data(forKey: recentsKey),
+        // 3. 加载 iCloud 数据并合并（如果 iCloud 可用）
+        if let iCloudData = iCloudStore?.data(forKey: recentsKey),
            let iCloudIds = try? JSONDecoder().decode([String].self, from: iCloudData) {
             print("[AppState] 从 iCloud 加载了 \(iCloudIds.count) 个最近浏览")
             for id in iCloudIds {
@@ -119,7 +130,7 @@ final class AppState: ObservableObject {
         print("[AppState] 合并后共 \(recentExhibitIds.count) 个最近浏览")
         
         // 加载图片路径映射
-        if let data = iCloudStore.data(forKey: artifactKey),
+        if let data = iCloudStore?.data(forKey: artifactKey),
            let entries = try? JSONDecoder().decode([String: String].self, from: data) {
             rebuildArtifactURLs(from: entries)
             print("[AppState] 从 iCloud 加载了 \(entries.count) 个图片映射")
@@ -128,7 +139,7 @@ final class AppState: ObservableObject {
         }
         
         // 加载位置信息
-        if let data = iCloudStore.data(forKey: locationKey),
+        if let data = iCloudStore?.data(forKey: locationKey),
            let entries = try? JSONDecoder().decode([String: LocationRecord].self, from: data) {
             exhibitLocations = entries
             print("[AppState] 从 iCloud 加载了 \(entries.count) 个位置记录")
@@ -214,9 +225,9 @@ final class AppState: ObservableObject {
 
     private func saveRecents() {
         if let data = try? JSONEncoder().encode(recentExhibitIds) {
-            // 保存到 iCloud
-            iCloudStore.set(data, forKey: recentsKey)
-            iCloudStore.synchronize()
+            // 保存到 iCloud（如果可用）
+            iCloudStore?.set(data, forKey: recentsKey)
+            iCloudStore?.synchronize()
             // 同时保存到本地作为备份
             UserDefaults.standard.set(data, forKey: recentsKey)
         }
@@ -292,9 +303,9 @@ final class AppState: ObservableObject {
         entries[exhibitId] = filename
         
         if let data = try? JSONEncoder().encode(entries) {
-            // 保存到 iCloud
-            iCloudStore.set(data, forKey: artifactKey)
-            iCloudStore.synchronize()
+            // 保存到 iCloud（如果可用）
+            iCloudStore?.set(data, forKey: artifactKey)
+            iCloudStore?.synchronize()
             // 同时保存到本地
             UserDefaults.standard.set(data, forKey: artifactKey)
         }
@@ -309,9 +320,9 @@ final class AppState: ObservableObject {
 
     private func saveLocations() {
         if let data = try? JSONEncoder().encode(exhibitLocations) {
-            // 保存到 iCloud
-            iCloudStore.set(data, forKey: locationKey)
-            iCloudStore.synchronize()
+            // 保存到 iCloud（如果可用）
+            iCloudStore?.set(data, forKey: locationKey)
+            iCloudStore?.synchronize()
             // 同时保存到本地
             UserDefaults.standard.set(data, forKey: locationKey)
         }
@@ -398,7 +409,7 @@ final class AppState: ObservableObject {
     
     /// 强制同步 iCloud
     func forceiCloudSync() {
-        iCloudStore.synchronize()
+        iCloudStore?.synchronize()
         saveUserExhibits()
         saveRecents()
         saveLocations()
@@ -481,8 +492,8 @@ final class AppState: ObservableObject {
         }
         
         if let data = try? JSONEncoder().encode(entries) {
-            iCloudStore.set(data, forKey: artifactKey)
-            iCloudStore.synchronize()
+            iCloudStore?.set(data, forKey: artifactKey)
+            iCloudStore?.synchronize()
             UserDefaults.standard.set(data, forKey: artifactKey)
         }
     }

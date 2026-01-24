@@ -137,22 +137,11 @@ struct HomeView: View {
     
     private var historySection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("历史行程")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(Color.primaryText)
-                
-                Spacer()
-                
-                Button {
-                    // 查看全部
-                } label: {
-                    Image(systemName: "tray.full")
-                        .font(.system(size: 18))
-                        .foregroundStyle(Color.secondaryText)
-                }
-            }
-            .padding(.horizontal, 24)
+            Text("历史行程")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(Color.primaryText)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 24)
             
             VStack(spacing: 12) {
                 if recentExhibits.isEmpty {
