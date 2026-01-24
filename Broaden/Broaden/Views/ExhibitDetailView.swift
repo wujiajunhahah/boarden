@@ -186,27 +186,20 @@ struct ExhibitDetailView: View {
     }
     
     // MARK: - View Sections
-    
+
     @ViewBuilder
     private var artifactPhotoSection: some View {
         if let url = appState.artifactPhotoURL(for: exhibit.id),
            let image = UIImage(contentsOfFile: url.path) {
-            Group {
-                if #available(iOS 16.0, *) {
-                    ArtifactSubjectView(originalImage: image)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 220)
-                } else {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
-                        .rotationEffect(.degrees(90))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 220)
-                        .clipped()
-                }
-            }
-            .accessibilityLabel("文物主体照片")
+            // 图片已经在 SubjectMaskingService 中处理过去背景
+            // 直接显示，不需要再提取主体
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: .infinity)
+                .frame(height: 220)
+                .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+                .accessibilityLabel("文物主体照片")
         }
     }
     

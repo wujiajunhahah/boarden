@@ -215,62 +215,39 @@ struct CameraGuideView: View {
 
     private var statusOverlay: some View {
         VStack(spacing: 16) {
-            if case .failed(let message) = viewModel.recognitionState {
-                // 失败状态：只显示错误信息
-                VStack(spacing: 10) {
-                    Label(message, systemImage: "exclamationmark.triangle")
-                        .font(.callout)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(.ultraThinMaterial, in: Capsule())
-                        .accessibilityLabel(message)
-                    
-                    Button("重试") {
-                        viewModel.reset()
-                    }
-                    .font(.callout.weight(.medium))
+            // 只显示正常状态：步骤指示器和提示
+            stepIndicator
+
+            VStack(spacing: 6) {
+                Text(stageTitle)
+                    .font(.headline.weight(.semibold))
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 8)
-                    .background(Color.white.opacity(0.2), in: Capsule())
-                    .accessibilityLabel("重试识别")
-                }
-            } else {
-                // 正常状态：显示步骤指示器和提示
-                stepIndicator
-                
-                VStack(spacing: 6) {
-                    Text(stageTitle)
-                        .font(.headline.weight(.semibold))
-                        .foregroundStyle(.white)
-                    
-                    Text(stageHint)
-                        .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.8))
-                }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 14)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-                .accessibilityLabel("\(stageTitle), \(stageHint)")
-                
-                // 第一步时显示跳过按钮
-                if case .signboard = viewModel.captureStage {
-                    Button {
-                        skipToDirectCapture()
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text("跳过，直接拍摄物体")
-                                .font(.system(size: 13))
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 12))
-                        }
-                        .foregroundStyle(.white.opacity(0.8))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
+
+                Text(stageHint)
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.8))
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 14)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+            .accessibilityLabel("\(stageTitle), \(stageHint)")
+
+            // 第一步时显示跳过按钮
+            if case .signboard = viewModel.captureStage {
+                Button {
+                    skipToDirectCapture()
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("跳过，直接拍摄物体")
+                            .font(.system(size: 13))
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 12))
                     }
-                    .accessibilityLabel("跳过展牌识别，直接拍摄物体")
+                    .foregroundStyle(.white.opacity(0.8))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
                 }
+                .accessibilityLabel("跳过展牌识别，直接拍摄物体")
             }
         }
     }

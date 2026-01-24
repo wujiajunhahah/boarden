@@ -414,13 +414,9 @@ private struct HistoryCardFromExhibit: View {
     private var artifactImage: some View {
         if let url = appState.artifactPhotoURL(for: exhibit.id),
            let uiImage = UIImage(contentsOfFile: url.path) {
-            // 使用主体提取视图显示抠图
-            if #available(iOS 17.0, *) {
-                HistoryCardArtifactImage(originalImage: uiImage)
-            } else {
-                // iOS 17 以下显示原图
-                HistoryCardArtifactImageFallback(originalImage: uiImage)
-            }
+            // 图片已经在 SubjectMaskingService 中处理过去背景
+            // 直接显示，不需要再处理或旋转
+            HistoryCardArtifactImage(originalImage: uiImage)
         } else {
             // 占位图
             ZStack {
@@ -439,88 +435,28 @@ private struct HistoryCardFromExhibit: View {
     }
 }
 
-// MARK: - History Card Artifact Image (Subject Lifting using Vision)
+// MARK: - History Card Artifact Image
+// 图片已经在 SubjectMaskingService 中处理过去背景，直接显示即可
 
-@available(iOS 17.0, *)
 private struct HistoryCardArtifactImage: View {
     let originalImage: UIImage
-    @State private var liftedImage: UIImage?
-    @State private var isProcessing = false
-    
-    var body: some View {
-        GeometryReader { geometry in
-            Group {
-                if let lifted = liftedImage {
-                    Image(uiImage: lifted)
-                        .resizable()
-                        .scaledToFit()
-                        .rotationEffect(.degrees(90))
-                        .frame(width: geometry.size.width, height: geometry.size.height)
-                        .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)
-                } else if isProcessing {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    Image(uiImage: originalImage)
-                        .resizable()
-                        .scaledToFit()
-                        .rotationEffect(.degrees(90))
-                        .frame(width: geometry.size.width, height: geometry.size.height)
-                }
-            }
-        }
-        .task {
-            await extractSubject()
-        }
-    }
-    
-    private func extractSubject() async {
-        isProcessing = true
-        defer { isProcessing = false }
-        
-        guard let cgImage = originalImage.cgImage else { return }
-        
-        do {
-            // 使用 Vision 框架生成前景蒙版
-            let request = VNGenerateForegroundInstanceMaskRequest()
-            let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-            try handler.perform([request])
-            
-            guard let result = request.results?.first else { return }
-            
-            // 生成蒙版图像
-            let maskPixelBuffer = try result.generateScaledMaskForImage(forInstances: result.allInstances, from: handler)
-            
-            // 应用蒙版到原图
-            let ciContext = CIContext()
-            let ciImage = CIImage(cgImage: cgImage)
-            let maskCIImage = CIImage(cvPixelBuffer: maskPixelBuffer)
-            
-            // 使用 CIBlendWithMask 滤镜
-            let filter = CIFilter.blendWithMask()
-            filter.inputImage = ciImage
-            filter.maskImage = maskCIImage
-            filter.backgroundImage = CIImage.empty()
-            
-            guard let outputImage = filter.outputImage,
-                  let outputCGImage = ciContext.createCGImage(outputImage, from: ciImage.extent) else { return }
-            
-            liftedImage = UIImage(cgImage: outputCGImage)
-        } catch {
-            print("[HistoryCardArtifactImage] 提取失败: \(error.localizedDescription)")
-        }
-    }
-}
 
-// iOS 16 及以下的降级版本
-private struct HistoryCardArtifactImageFallback: View {
-    let originalImage: UIImage
-    
     var body: some View {
         Image(uiImage: originalImage)
             .resizable()
             .scaledToFit()
-            .rotationEffect(.degrees(90))
+            .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
+    }
+}
+
+// iOS 16 及以下的降级版本（与上面相同）
+private struct HistoryCardArtifactImageFallback: View {
+    let originalImage: UIImage
+
+    var body: some View {
+        Image(uiImage: originalImage)
+            .resizable()
+            .scaledToFit()
             .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
     }
 }

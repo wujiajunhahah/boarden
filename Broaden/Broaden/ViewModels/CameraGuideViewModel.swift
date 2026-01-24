@@ -75,7 +75,8 @@ final class CameraGuideViewModel: ObservableObject {
 
     func startScanning() {
         recognitionState = .scanning
-        scheduleFailureHint()
+        // 不再自动显示失败提示，让用户自然操作
+        // scheduleFailureHint()
     }
 
     func handleQRCode(_ code: String) {
@@ -184,7 +185,8 @@ final class CameraGuideViewModel: ObservableObject {
     func reset() {
         recognitionState = .scanning
         captureStage = .signboard
-        scheduleFailureHint()
+        // 不再自动显示失败提示，让用户自然操作
+        // scheduleFailureHint()
     }
     
     /// 进入直接拍摄模式，取消失败提示定时器
