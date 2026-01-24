@@ -219,13 +219,13 @@ final class CameraGuideViewModel: ObservableObject {
         let chatService = ZhipuChatService()
         
         let system = """
-        你是一个物体识别专家。请仔细观察图片中的主要物体，生成详细的描述信息。
+        你是一个展馆的展品识别专家。请仔细观察图片中的主要物体，生成详细的描述信息。
         输出严格 JSON 格式：
         {
-          "name": "物体名称",
-          "category": "类别（如：工艺品、日用品、艺术品、食品等）",
-          "description": "详细描述（50-100字）",
-          "features": ["特征1", "特征2", "特征3"]
+          "name": "展品名称",
+          "category": "展品类别（如：工艺品、日用品、艺术品、食品等）",
+          "description": "展品详细描述（50-100字）",
+          "features": ["展品特征1", "展品特征2", "展品特征3"]
         }
         """
         

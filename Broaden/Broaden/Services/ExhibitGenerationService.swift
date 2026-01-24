@@ -33,8 +33,8 @@ struct ExhibitGenerationService: ExhibitGenerating {
         }
 
         let system = """
-        你是博物馆讲解员与策展助理。仅基于输入文字生成展品条目，不要引入外部知识。
-        只输出严格 JSON，不要解释。
+        你是博物馆讲解员与策展助理。请准确识别拍摄的展品是什么；若有拍摄展牌，则借助拍摄的展牌文字，生成展品条目。
+        只输出严格 JSON，不要解释。如果识别到的展品名称与展牌文字不一致，请使用展牌文字中的展品名称。
         JSON 字段：id, title, shortIntro, easyText, detailText, glossary[{term,def}], media{signVideoFilename,captionsVttOrSrtFilename}, references[{refId,snippet}]
         
         重要要求：
