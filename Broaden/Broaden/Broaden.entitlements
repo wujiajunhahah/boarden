@@ -5,7 +5,7 @@
 	<!-- iCloud 容器 -->
 	<key>com.apple.developer.icloud-container-identifiers</key>
 	<array>
-		<string>iCloud.com.wujiajun.Broaden</string>
+		<string>iCloud.com.example.Broaden</string>
 	</array>
 
 	<!-- iCloud 服务 -->
@@ -16,12 +16,12 @@
 
 	<!-- Key-Value Store -->
 	<key>com.apple.developer.ubiquity-kvstore-identifier</key>
-	<string>$(TeamIdentifierPrefix)com.wujiajun.Broaden</string>
+	<string>$(TeamIdentifierPrefix)com.example.Broaden</string>
 
 	<!-- iCloud Documents 容器 -->
 	<key>com.apple.developer.ubiquity-container-identifiers</key>
 	<array>
-		<string>iCloud.com.wujiajun.Broaden</string>
+		<string>iCloud.com.example.Broaden</string>
 	</array>
 </dict>
 </plist>

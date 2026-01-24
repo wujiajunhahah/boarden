@@ -31,7 +31,7 @@
    - 如果 Xcode 自动创建了新的 entitlements 文件，确保其内容包含必要的权限
 
 7. **修改 Bundle Identifier**
-   - Bundle ID: `com.wujiajun.Broaden`
+   - 将 `com.example.Broaden` 改为你自己的 Bundle ID
    - 确保与 Apple Developer 账户中的 App ID 一致
 
 ---
