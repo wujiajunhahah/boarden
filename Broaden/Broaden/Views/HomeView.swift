@@ -143,32 +143,53 @@ struct HomeView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 24)
             
-            VStack(spacing: 12) {
-                if recentExhibits.isEmpty {
-                    // 空状态提示
-                    Text("暂无历史记录")
-                        .font(.system(size: 14))
-                        .foregroundStyle(Color.secondaryText)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 20)
-                } else {
+            if recentExhibits.isEmpty {
+                // 空状态提示
+                Text("暂无历史记录")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.secondaryText)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .padding(.horizontal, 24)
+            } else {
+                // 使用 List 实现左滑删除
+                List {
                     ForEach(recentExhibits, id: \.id) { exhibit in
                         NavigationLink {
                             ExhibitDetailView(exhibit: exhibit)
                         } label: {
                             HistoryCardFromExhibit(exhibit: exhibit)
                         }
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top: 6, leading: 24, bottom: 6, trailing: 24))
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                withAnimation {
+                                    appState.deleteUserExhibit(exhibit.id)
+                                }
+                            } label: {
+                                Text("删除")
+                                    .font(.system(size: 16, weight: .medium))
+                            }
+                        }
                     }
                 }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .frame(height: CGFloat(recentExhibits.count) * 100)  // 根据卡片数量动态调整高度
             }
-            .padding(.horizontal, 24)
         }
     }
     
     // MARK: - Recent Exhibits
     
     private var recentExhibits: [Exhibit] {
-        appState.recentExhibitIds.compactMap { appState.exhibit(by: $0) }
+        // 只显示用户扫描的展品，排除预置示例展品
+        let userExhibitIds = Set(appState.userExhibits.map { $0.id })
+        return appState.recentExhibitIds
+            .filter { userExhibitIds.contains($0) }
+            .compactMap { appState.exhibit(by: $0) }
     }
 }
 
