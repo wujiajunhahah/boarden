@@ -56,10 +56,22 @@ struct ExhibitGenerationService: ExhibitGenerating {
         }
 
         guard let jsonData = extractJSONData(from: response),
-              let exhibit = try? JSONDecoder().decode(Exhibit.self, from: jsonData) else {
+              var exhibit = try? JSONDecoder().decode(Exhibit.self, from: jsonData) else {
             print("[ExhibitGeneration] JSON 解析失败，响应: \(response)")
             throw ExhibitGenerationError.invalidResponse
         }
+
+        // 使用 UUID 生成唯一 ID，避免 LLM 生成的 ID 重复导致覆盖
+        exhibit = Exhibit(
+            id: "EXH-\(UUID().uuidString.prefix(8))",
+            title: exhibit.title,
+            shortIntro: exhibit.shortIntro,
+            easyText: exhibit.easyText,
+            detailText: exhibit.detailText,
+            glossary: exhibit.glossary,
+            media: exhibit.media,
+            references: exhibit.references
+        )
 
         return exhibit
     }

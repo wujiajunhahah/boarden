@@ -261,8 +261,8 @@ final class CameraGuideViewModel: ObservableObject {
             return nil
         }
         
-        // 生成唯一 ID
-        let id = "EXH-\(String(format: "%04d", Int.random(in: 1000...9999)))"
+        // 生成唯一 ID（使用 UUID 确保不会重复）
+        let id = "EXH-\(UUID().uuidString.prefix(8))"
         
         // 生成术语卡片
         var glossary: [GlossaryItem] = []

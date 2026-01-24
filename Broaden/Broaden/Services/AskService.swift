@@ -40,13 +40,12 @@ struct ZhipuAskService: AskServicing {
         你是博物馆无障碍导览助手。结合提供的展品上下文回答用户问题。
         必须输出严格 JSON 格式，不要有任何其他文字：
         {
-          "answer_simple": "简短回答（1-2句，直接回答问题核心）",
+          "answer_simple": "简短回答（口语化、短句、避免复杂术语和从句，适合直接转为手语动作）",
           "answer_detail": "详细回答（比如，包含背景知识、历史典故、工艺细节等）",
-          "sign_script": "手语翻译脚本（口语化、短句、避免复杂术语和从句，适合直接转为手语动作）",
           "citations": ["引用来源1", "引用来源2"],
           "confidence": "high/medium/low"
         }
-        注意：sign_script 需要特别简洁易懂，使用日常用语，每句不超过15字。
+        注意：answer_simple 需要特别简洁易懂，使用日常用语，每句不超过15字。
         """
         let user = """
         展品ID：\(request.exhibitId)
