@@ -100,6 +100,10 @@ struct CameraGuideView: View {
                 showPermissionAlert = true
             }
         }
+        .onDisappear {
+            // 视图消失时停止相机，释放资源
+            cameraController.stop()
+        }
     }
     
     // MARK: - Top Bar
