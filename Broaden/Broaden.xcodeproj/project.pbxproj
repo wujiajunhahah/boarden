@@ -26,6 +26,7 @@
 		01A1A0BC0000000100000001 /* AskModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0AC0000000100000001 /* AskModels.swift */; };
 		01A1A0BD0000000100000001 /* SettingsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0AD0000000100000001 /* SettingsModels.swift */; };
 		01A1A0BE0000000100000001 /* ExhibitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0AE0000000100000001 /* ExhibitService.swift */; };
+		CD5D23425F5C47F7A2180869 /* PermissionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C368650F0CA4D1698D4E093 /* PermissionService.swift */; };
 		01A1A0BF0000000100000001 /* AskService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0AF0000000100000001 /* AskService.swift */; };
 		01A1A0C00000000100000001 /* CaptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0B00000000100000001 /* CaptionService.swift */; };
 		01A1A0C10000000100000001 /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A1A0B10000000100000002 /* Haptics.swift */; };
@@ -72,6 +73,7 @@
 		01A1A0AE0000000100000001 /* ExhibitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExhibitService.swift; sourceTree = "<group>"; };
 		01A1A0AF0000000100000001 /* AskService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskService.swift; sourceTree = "<group>"; };
 		01A1A0B00000000100000001 /* CaptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptionService.swift; sourceTree = "<group>"; };
+		4C368650F0CA4D1698D4E093 /* PermissionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionService.swift; sourceTree = "<group>"; };
 		01A1A0B10000000100000002 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		01A1A0B20000000100000002 /* ExhibitMatchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExhibitMatchService.swift; sourceTree = "<group>"; };
 		01A1A0B30000000100000002 /* AnswerCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnswerCache.swift; sourceTree = "<group>"; };
@@ -159,6 +161,7 @@
 				01A1A0F70000000100000002 /* ExhibitGenerationService.swift */,
 				01A1A0FC0000000200000001 /* ZhipuService.swift */,
 				01A1A0AE0000000100000001 /* ExhibitService.swift */,
+				4C368650F0CA4D1698D4E093 /* PermissionService.swift */,
 				01A1A0AF0000000100000001 /* AskService.swift */,
 				01A1A0B00000000100000001 /* CaptionService.swift */,
 				01A1A0B10000000100000002 /* Haptics.swift */,
@@ -314,6 +317,14 @@
 				01A1A0E80000000100000002 /* ExhibitNarrationService.swift in Sources */,
 				01A1A0F80000000100000002 /* ExhibitGenerationService.swift in Sources */,
 				01A1A0FD0000000200000001 /* ZhipuService.swift in Sources */,
+				01A1A0BE0000000100000001 /* ExhibitService.swift in Sources */,
+				CD5D23425F5C47F7A2180869 /* PermissionService.swift in Sources */,
+				01A1A0BF0000000100000001 /* AskService.swift in Sources */,
+				01A1A0C00000000100000001 /* CaptionService.swift in Sources */,
+				01A1A0C10000000100000001 /* Haptics.swift in Sources */,
+				01A1A0C20000000100000001 /* ExhibitMatchService.swift in Sources */,
+				01A1A0C30000000100000001 /* AnswerCache.swift in Sources */,
+				01A1A0C40000000100000001 /* CameraSessionController.swift in Sources */,
 				01A1A0B10000000100000001 /* BroadenApp.swift in Sources */,
 				01A1A0B20000000100000001 /* RootView.swift in Sources */,
 				01A1A0B30000000100000001 /* HomeView.swift in Sources */,
@@ -327,13 +338,6 @@
 				01A1A0BB0000000100000001 /* Exhibit.swift in Sources */,
 				01A1A0BC0000000100000001 /* AskModels.swift in Sources */,
 				01A1A0BD0000000100000001 /* SettingsModels.swift in Sources */,
-				01A1A0BE0000000100000001 /* ExhibitService.swift in Sources */,
-				01A1A0BF0000000100000001 /* AskService.swift in Sources */,
-				01A1A0C00000000100000001 /* CaptionService.swift in Sources */,
-				01A1A0C10000000100000001 /* Haptics.swift in Sources */,
-				01A1A0C20000000100000001 /* ExhibitMatchService.swift in Sources */,
-				01A1A0C30000000100000001 /* AnswerCache.swift in Sources */,
-				01A1A0C40000000100000001 /* CameraSessionController.swift in Sources */,
 				01A1A0C50000000100000001 /* AppState.swift in Sources */,
 				01A1A0C60000000100000001 /* CameraGuideViewModel.swift in Sources */,
 				01A1A0C70000000100000001 /* ExhibitDetailViewModel.swift in Sources */,

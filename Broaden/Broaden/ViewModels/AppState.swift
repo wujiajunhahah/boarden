@@ -9,7 +9,7 @@ final class AppState: ObservableObject {
     
     /// 待跳转的展品详情（用于导航）
     @Published var pendingExhibitForDetail: Exhibit?
-    
+
     /// 用户添加的展品（持久化存储）
     private var userExhibits: [Exhibit] = []
     
