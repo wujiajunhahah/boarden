@@ -42,6 +42,7 @@ struct ZhipuAskService: AskServicing {
         {
           "answer_simple": "简短回答（口语化、短句、避免复杂术语和从句，适合直接转为手语动作）",
           "answer_detail": "详细回答（比如，包含背景知识、历史典故、工艺细节等）",
+          "sign_script": "手语翻译脚本（与 answer_simple 内容一致，但每句话独立成行，方便逐句转为手语）",
           "citations": ["引用来源1", "引用来源2"],
           "confidence": "high/medium/low"
         }
@@ -80,26 +81,53 @@ struct ZhipuAskService: AskServicing {
             answerDetail: parsed.answer_detail,
             citations: parsed.citations,
             confidence: parsed.confidence,
-            signScript: parsed.sign_script
+            signScript: parsed.sign_script ?? ""  // 使用默认值
         )
     }
 
     /// 当 JSON 解析失败时的回退方案
     private func fallbackResponse(from text: String) -> AskResponse? {
-        // 直接使用原始文本，不做预设空响应检查
+        // 尝试从原始文本中提取可读内容（去除 JSON 结构）
+        var cleanText = text
+
+        // 移除可能的 JSON/markdown 标记
+        if let range = text.range(of: "```json") {
+            cleanText = String(text[range.upperBound...])
+        }
+        if let range = text.range(of: "```") {
+            cleanText = String(text[..<range.lowerBound])
+        }
+        cleanText = cleanText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // 如果是 JSON 格式，尝试提取 answer_simple 或 answer_detail
+        if let data = cleanText.data(using: .utf8),
+           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            let simple = json["answer_simple"] as? String ?? json["answerSimple"] as? String
+            let detail = json["answer_detail"] as? String ?? json["answerDetail"] as? String
+
+            return AskResponse(
+                answerSimple: simple ?? String(text.prefix(100)),
+                answerDetail: detail ?? text,
+                citations: [],
+                confidence: .medium,
+                signScript: ""  // 解析失败时不生成手语脚本
+            )
+        }
+
+        // 非 JSON 格式，直接使用文本
         return AskResponse(
-            answerSimple: String(text.prefix(200)),
+            answerSimple: String(text.prefix(150)),
             answerDetail: text,
             citations: [],
-            confidence: .medium,
-            signScript: text
+            confidence: .low,
+            signScript: ""  // 解析失败时不生成手语脚本
         )
     }
 
     private struct AskResponseDTO: Codable, Sendable {
         let answer_simple: String
         let answer_detail: String
-        let sign_script: String
+        let sign_script: String?  // 改为可选，因为 API 可能不返回
         let citations: [String]
         let confidence: ConfidenceLevel
     }

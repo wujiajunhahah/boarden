@@ -156,21 +156,48 @@ private struct AnswerCardView: View {
                             .foregroundStyle(.secondary)
                     }
                 case 2:
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(response.signScript)
+                    VStack(alignment: .leading, spacing: 12) {
+                        // 显示说明文字而非原始脚本
+                        Text("手语数字人将为您演示这段内容")
                             .font(.body)
-                        
-                        // 手语脚本状态指示
-                        if avatarCoordinator.isLoaded {
-                            HStack(spacing: 4) {
-                                Circle()
-                                    .fill(.green)
-                                    .frame(width: 8, height: 8)
-                                Text("数字人已就绪")
-                                    .font(.caption2)
+                            .foregroundStyle(.secondary)
+
+                        // 数字人状态和控制
+                        HStack(spacing: 12) {
+                            if avatarCoordinator.isLoaded {
+                                // 状态指示器
+                                HStack(spacing: 6) {
+                                    Circle()
+                                        .fill(.green)
+                                        .frame(width: 8, height: 8)
+                                    Text("数字人已就绪")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+
+                                Spacer()
+
+                                // 重播按钮
+                                Button {
+                                    Haptics.lightImpact()
+                                    avatarCoordinator.sendText(response.signScript)
+                                } label: {
+                                    Label("重新播放", systemImage: "play.circle.fill")
+                                        .font(.callout)
+                                }
+                                .accessibilityLabel("重新播放手语演示")
+                            } else {
+                                // 加载中状态
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                Text("正在加载数字人...")
+                                    .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
                         }
+                        .padding()
+                        .background(Color(.systemBackground).opacity(0.5))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                 default:
                     Text(response.answerSimple)
