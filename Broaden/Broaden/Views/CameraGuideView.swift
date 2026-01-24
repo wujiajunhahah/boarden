@@ -5,10 +5,10 @@ import PhotosUI
 
 struct CameraGuideView: View {
     @Binding var selectedTab: AppTab
-    
+
     @EnvironmentObject private var appState: AppState
     @StateObject private var viewModel = CameraGuideViewModel()
-    @State private var cameraController = CameraSessionController()
+    @StateObject private var cameraController = CameraSessionController()
     @State private var showPermissionAlert = false
     @State private var lastCapturedPreview: UIImage?
     @State private var subjectService = SubjectMaskingService()
@@ -17,6 +17,7 @@ struct CameraGuideView: View {
     @State private var isGalleryPresented = false
     @State private var showSettings = false
     @State private var isDirectCaptureMode = false  // 跳过展牌识别，直接拍摄物体
+    @State private var isCameraConfigured = false  // 跟踪相机是否已配置
 
     var body: some View {
         ZStack {
@@ -48,17 +49,22 @@ struct CameraGuideView: View {
         .toolbar(.hidden, for: .tabBar)
         .onAppear {
             viewModel.updateExhibits(appState.exhibits)
-            viewModel.checkAuthorization()
             viewModel.onExhibitGenerated = { exhibit in
                 appState.upsertExhibit(exhibit)
                 appState.addRecent(exhibit: exhibit)
             }
-            // 确保相机正确启动
+
+            // 只配置一次
+            if !isCameraConfigured {
+                configureCamera()
+                isCameraConfigured = true
+            }
+
+            // 检查权限并启动
+            viewModel.checkAuthorization()
             if viewModel.authorizationState == .authorized {
                 cameraController.start()
                 viewModel.startScanning()
-            } else {
-                configureCamera()
             }
         }
         .onChange(of: viewModel.authorizationState) { _, state in
@@ -107,7 +113,7 @@ struct CameraGuideView: View {
             }
         }
         .onDisappear {
-            // 视图消失时停止相机，释放资源
+            // 视图消失时停止相机，但保留配置状态
             cameraController.stop()
         }
     }
