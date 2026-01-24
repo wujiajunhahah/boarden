@@ -53,7 +53,13 @@ struct CameraGuideView: View {
                 appState.upsertExhibit(exhibit)
                 appState.addRecent(exhibit: exhibit)
             }
-            configureCamera()
+            // 确保相机正确启动
+            if viewModel.authorizationState == .authorized {
+                cameraController.start()
+                viewModel.startScanning()
+            } else {
+                configureCamera()
+            }
         }
         .onChange(of: viewModel.authorizationState) { _, state in
             if state == .authorized {
